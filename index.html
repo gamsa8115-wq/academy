@@ -113,8 +113,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .main-inner{padding:24px 28px 60px}
 
 /* ── 페이지 타이틀 ── */
-.page-header{margin-bottom:22px}
-.page-title{font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
+.page-header{margin-bottom:20px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.page-title{font-size:22px;font-weight:800;color:var(--text);margin-bottom:0}
 .page-sub{font-size:12px;color:var(--text3)}
 
 /* ── 탭 ── */
@@ -2249,7 +2249,7 @@ function renderStatusPage() {
     return `
       <div class="page-header">
         <div class="page-title">반별학습현황</div>
-        <div class="page-sub">오늘 ${todayLabel} 기준 진행 중인 과제 요약</div>
+        <div class="page-sub">오늘 ${todayLabel} 기준 — 진행 중인 과제 요약. 완료된 과제는 ✓ 표시됩니다.</div>
       </div>
       ${classTabsHTML}
       <div class="empty-state"><div class="empty-icon">👤</div>
@@ -2360,7 +2360,7 @@ function renderStatusPage() {
         font-size:12px;font-weight:700;color:var(--text2);padding:9px 12px;text-align:left">
         학생
       </th>
-      <th style="position:sticky;left:90px;top:0;z-index:5;background:#FFFBF0;min-width:140px;
+      <th style="position:sticky;left:90px;top:0;z-index:5;background:#FFFBF0;min-width:200px;
         border-right:2px solid var(--border2);border-bottom:2px solid var(--border2);
         font-size:11px;font-weight:700;color:#7A5F00;padding:9px 12px;text-align:left">
         특이사항
@@ -2404,10 +2404,10 @@ function renderStatusPage() {
         </td>
         <td style="position:sticky;left:90px;z-index:2;background:${rowBg};
           border-right:2px solid var(--border2);border-bottom:1px solid var(--border);
-          padding:6px 8px;vertical-align:middle;min-width:140px">
+          padding:6px 8px;vertical-align:middle;min-width:200px">
           <textarea
             placeholder="특이사항 입력..."
-            style="width:100%;min-height:40px;max-height:80px;resize:vertical;
+            style="width:100%;min-height:48px;max-height:120px;resize:vertical;
               border:1px solid transparent;border-radius:5px;padding:4px 6px;
               font-size:11px;font-family:inherit;color:var(--text);
               background:transparent;outline:none;line-height:1.5;box-sizing:border-box"
@@ -2437,7 +2437,7 @@ function renderStatusPage() {
         <span class="card-title">${cls.name}</span>
         <span class="badge b-blue">${students.length}명</span>
         <!-- 반 메모 -->
-        <div style="margin-left:auto;display:flex;align-items:center;gap:6px;flex:1;max-width:420px">
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px;flex:1;max-width:600px">
           <span style="font-size:11px;font-weight:700;color:#7A5F00;white-space:nowrap;flex-shrink:0">📝 반 메모</span>
           <input type="text"
             id="class-memo-${cls.id}"
