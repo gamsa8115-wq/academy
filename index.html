@@ -1108,6 +1108,12 @@ const HOLIDAYS = new Set([
   '2026-08-17',
   '2026-09-24','2026-09-25','2026-09-26',
   '2026-10-03','2026-10-09','2026-12-25',
+  // 2027
+  '2027-01-01','2027-01-27','2027-01-28','2027-01-29',
+  '2027-03-01','2027-05-05','2027-06-06',
+  '2027-08-16',
+  '2027-10-04','2027-10-05','2027-10-06',
+  '2027-10-03','2027-10-09','2027-12-25',
 ]);
 
 function isStudyDay(date) {
@@ -1119,6 +1125,24 @@ function isStudyDay(date) {
   // 선생님이 등록한 추가 휴무일 확인
   if (DB && Array.isArray(DB.offDays) && DB.offDays.some(o => o.date === str)) return false;
   return true;
+}
+
+// ── 날짜가 학습일인지 검사 — 오류 메시지 반환 (없으면 null) ──
+function validateStudyDate(dateStr, label) {
+  if (!dateStr) return null; // 빈 값은 별도 필수 검사에서 처리
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDay();
+  if (day === 0 || day === 6) {
+    const dayName = ['일','월','화','수','목','금','토'][day];
+    return `${label}(${dateStr})은 ${dayName}요일입니다. 학습일(월~금)만 선택할 수 있습니다.`;
+  }
+  if (HOLIDAYS.has(dateStr)) {
+    return `${label}(${dateStr})은 공휴일입니다. 학습일만 선택할 수 있습니다.`;
+  }
+  if (DB && Array.isArray(DB.offDays) && DB.offDays.some(o => o.date === dateStr)) {
+    return `${label}(${dateStr})은 등록된 휴무일입니다. 학습일만 선택할 수 있습니다.`;
+  }
+  return null; // 학습일 — 문제없음
 }
 
 function formatDate(d) {
@@ -2141,6 +2165,9 @@ function saveEndDate(assignId, startDate) {
   const endDate = input.value;
   if (!endDate) { toast('종료일을 선택하세요.', 'error'); return; }
   if (startDate && endDate < startDate) { toast('종료일이 시작일보다 빠릅니다.', 'error'); return; }
+  // 종료일 학습일 검사
+  const endDateErr = validateStudyDate(endDate, '종료일');
+  if (endDateErr) { toast(endDateErr, 'error'); return; }
   const assign = DB.assignments.find(a => a.id === assignId);
   if (!assign) { toast('과제를 찾을 수 없습니다.', 'error'); return; }
   assign.endDate = endDate;
@@ -3444,6 +3471,10 @@ function saveAssignConfirm() {
   if (!book)      { toast('교재명을 입력하세요.', 'error'); return; }
   if (!startDate) { toast('시작 날짜를 선택하세요.', 'error'); return; }
 
+  // 시작일 학습일 검사 (토·일·공휴일·추가휴무일 제외)
+  const startDateErr = validateStudyDate(startDate, '시작일');
+  if (startDateErr) { toast(startDateErr, 'error'); return; }
+
   const selectedIds = getSelectedStudentIds();
   if (selectedIds.length === 0) { toast('학생을 1명 이상 선택하세요.', 'error'); return; }
 
@@ -3484,6 +3515,9 @@ function saveAssignConfirm() {
       if (rawEnd < startDate) {
         toast('종료일이 시작일보다 빠릅니다.', 'error'); return;
       }
+      // 종료일 학습일 검사
+      const endDateErr = validateStudyDate(rawEnd, '종료일');
+      if (endDateErr) { toast(endDateErr, 'error'); return; }
       inputEndDate = rawEnd;
     }
   }
@@ -3686,6 +3720,10 @@ function saveEditAssign() {
   if (!book)      { toast('교재명을 입력하세요.', 'error'); return; }
   if (!startDate) { toast('시작 날짜를 선택하세요.', 'error'); return; }
 
+  // 시작일 학습일 검사
+  const startDateErr = validateStudyDate(startDate, '시작일');
+  if (startDateErr) { toast(startDateErr, 'error'); return; }
+
   const isVoca     = type === 'SV' || type === 'HV';
   const isTextbook = type === 'MAIN' || type === 'SUB';
 
@@ -3740,6 +3778,9 @@ function saveEditAssign() {
       if (rawEnd < startDate) {
         toast('종료일이 시작일보다 빠릅니다. 종료일을 확인하세요.', 'error'); return;
       }
+      // 종료일 학습일 검사
+      const endDateErr = validateStudyDate(rawEnd, '종료일');
+      if (endDateErr) { toast(endDateErr, 'error'); return; }
       inputEndDate = rawEnd;
     } else {
       inputEndDate = null;
