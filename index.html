@@ -1980,6 +1980,22 @@ function markAllPresent(classId, dateStr) {
 
 // 열린 학생 ID를 기억 (페이지 재렌더 시 상태 유지)
 const _openStudents = new Set();
+const _openDone     = new Set(); // 완료 과제 섹션 열림 상태 (학생별)
+
+// ── 과제 완료 여부 판단 공통 함수 ─────────────────────────
+// 오류1 해결: 유형별 완료 기준 통일
+function isAssignDone(a) {
+  const today = formatDate(new Date());
+  if (a.type === 'SV' || a.type === 'HV') {
+    // 보카: 오늘이 마지막 학습일을 지났으면 완료
+    if (!a.sets || !a.startDate) return false; // 오류9: sets 없으면 진행중 처리
+    const last = getLastStudyDate(a.startDate, a.sets, a.type==='SV' ? (a.studyDays||null) : null);
+    return last < today;
+  } else {
+    // 교재: endDate 있고 오늘보다 과거면 완료
+    return !!(a.endDate && a.endDate < today);
+  }
+}
 
 // ══════════════════════════════════════════════════════════
 // 7. 과제설정 페이지
@@ -2023,25 +2039,26 @@ function renderAssignPage() {
       const isOpen   = _openStudents.has(stu.id);
 
       // ── 과제 목록 (열렸을 때만 렌더) ──────────────────────
-      const assignListHTML = assigns.length === 0
-        ? `<div style="padding:10px 14px;font-size:12px;color:var(--text3)">설정된 과제가 없습니다.</div>`
-        : assigns.map(a => {
+      // 진행중 / 완료 분리 (오류1,3,4 해결)
+      const activeAssigns = assigns.filter(a => !isAssignDone(a));
+      const doneAssigns   = assigns.filter(a =>  isAssignDone(a));
+      const isDoneOpen    = _openDone.has(stu.id); // 오류2,6 해결
+
+      // 과제 한 행 렌더 함수 (진행중/완료 공용)
+      function renderAssignRow(a) {
             const isVoca     = a.type==='SV'||a.type==='HV';
             const isTextbook = a.type==='MAIN'||a.type==='SUB';
-            // 보카: 세트수로 자동계산 / 교재: 직접 입력한 endDate 사용
             const endDate = isVoca
               ? (a.sets ? getLastStudyDate(a.startDate, a.sets, a.type==='SV' ? (a.studyDays||null) : null) : '—')
               : (a.endDate || null);
 
             const chipStart = `<span style="background:#F0EEE8;color:#5A5955;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">${a.startDate} 시작</span>`;
-            // 교재: 종료일 있으면 완료 칩(초록), 없으면 진행중 칩(노랑)
             const chipEnd = isTextbook
               ? (endDate
                   ? `<span style="background:#E8F5E9;color:#1B5E20;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">~ ${endDate} 완료</span>`
                   : `<span style="background:#FEF5E7;color:#8F5409;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">진행중</span>`)
               : `<span style="background:#F0EEE8;color:#5A5955;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">~ ${endDate}</span>`;
 
-            // 교재 전용: 종료일 입력/수정 + 삭제 버튼
             const endDateBtn = isTextbook
               ? `<button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:10px"
                    onclick="openEndDateInput('${a.id}','${endDate||''}','${a.startDate}')">${endDate ? '종료일 수정' : '✏️ 종료일 입력'}</button>
@@ -2059,7 +2076,6 @@ function renderAssignPage() {
                 a.test    ? `<span style="background:#FCF0EE;color:#9C2418;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">테스트 ${a.test}점${a.testType ? ' · '+a.testType : ''}</span>` : '',
               ].filter(Boolean).join('');
             }
-            // 교재(MAIN/SUB): 날짜 칩 외 추가 칩 없음
 
             return `
               <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;
@@ -2068,7 +2084,6 @@ function renderAssignPage() {
                 <span class="type-chip ${TYPE_CHIPS[a.type]}">${TYPE_LABELS[a.type]}</span>
                 <span style="font-weight:700;font-size:13px;color:var(--text)">${a.book}</span>
                 ${chipStart}${chipEnd}${extraChips}
-                <!-- 교재 인라인 종료일 입력창 -->
                 <span id="enddate-inline-${a.id}" style="display:none;align-items:center;gap:4px">
                   <input type="date" id="enddate-input-${a.id}"
                     style="border:1px solid var(--border2);border-radius:5px;padding:2px 6px;
@@ -2087,7 +2102,35 @@ function renderAssignPage() {
                     onclick="deleteAssignment('${a.id}')">삭제</button>
                 </div>
               </div>`;
-          }).join('');
+      }
+
+      // 진행중 섹션 HTML (오류4 해결: 0건 메시지)
+      const activeHTML = activeAssigns.length === 0
+        ? `<div style="padding:10px 14px;font-size:12px;color:var(--text3)">
+             ${assigns.length > 0 ? '현재 진행중인 과제가 없습니다.' : '설정된 과제가 없습니다.'}
+           </div>`
+        : activeAssigns.map(renderAssignRow).join('');
+
+      // 완료 섹션 HTML (오류3 해결: 0건이면 버튼 숨김)
+      const doneSection = doneAssigns.length === 0 ? '' : `
+        <div style="border-top:1px solid var(--border)">
+          <div onclick="event.stopPropagation();toggleDoneSection('${stu.id}')"
+            style="display:flex;align-items:center;gap:8px;padding:7px 14px;
+              cursor:pointer;background:var(--bg);user-select:none;
+              transition:background .12s"
+            onmouseenter="this.style.background='var(--surface)'"
+            onmouseleave="this.style.background='var(--bg)'">
+            <span style="font-size:12px;color:var(--text3);transition:transform .2s;display:inline-block;
+              transform:${isDoneOpen?'rotate(90deg)':'rotate(0deg)'}"
+              id="done-arrow-${stu.id}">▶</span>
+            <span style="font-size:11px;font-weight:700;color:var(--text3)">완료된 과제 ${doneAssigns.length}건</span>
+          </div>
+          <div id="done-body-${stu.id}" style="display:${isDoneOpen?'block':'none'}">
+            ${doneAssigns.map(renderAssignRow).join('')}
+          </div>
+        </div>`;
+
+      const assignListHTML = `${activeHTML}${doneSection}`;
 
       return `
         <div class="assign-acc-row" data-stu-id="${stu.id}" data-stu-name="${stu.name}"
@@ -2104,6 +2147,9 @@ function renderAssignPage() {
               " id="acc-arrow-${stu.id}">▶</span>
             <span style="font-size:13px;font-weight:700;color:var(--text)">${stu.name}</span>
             <span class="badge b-gray">${assigns.length}건</span>
+            ${activeAssigns.length < assigns.length
+              ? `<span style="font-size:11px;color:var(--text3)">진행중 ${activeAssigns.length}</span>`
+              : ''}
             <button class="btn btn-primary btn-sm" style="margin-left:auto;flex-shrink:0"
               onclick="event.stopPropagation();openAddAssignModal('${cls.id}','${stu.id}')">＋ 과제</button>
           </div>
@@ -2203,6 +2249,21 @@ function toggleStuDetail(stuId) {
   // 상태 기억
   if (willOpen) _openStudents.add(stuId);
   else          _openStudents.delete(stuId);
+}
+
+// 완료 과제 섹션 토글 (오류2,5,6 해결)
+function toggleDoneSection(stuId) {
+  const body  = document.getElementById('done-body-'  + stuId);
+  const arrow = document.getElementById('done-arrow-' + stuId);
+  if (!body) return;
+
+  const willOpen = body.style.display === 'none';
+  body.style.display = willOpen ? 'block' : 'none';
+  if (arrow) arrow.style.transform = willOpen ? 'rotate(90deg)' : 'rotate(0deg)';
+
+  // 오류6 해결: 재렌더링 후에도 상태 유지
+  if (willOpen) _openDone.add(stuId);
+  else          _openDone.delete(stuId);
 }
 
 // 과제설정 학생 검색 — 매칭되면 자동으로 아코디언 열기
