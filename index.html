@@ -647,6 +647,28 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
             </select>
           </div>
         </div>
+
+        <!-- 수업보카(SV) 전용: 수업 요일 선택 -->
+        <div id="sv-days-field" style="display:none;margin-top:12px">
+          <label class="form-label" style="margin-bottom:6px">수업 요일 <span style="font-size:11px;color:var(--text3);font-weight:400">(수업보카를 하는 날만 체크)</span></label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px">
+              <input type="checkbox" id="sv-day-1" value="1" checked> 월
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px">
+              <input type="checkbox" id="sv-day-2" value="2" checked> 화
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px">
+              <input type="checkbox" id="sv-day-3" value="3" checked> 수
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px">
+              <input type="checkbox" id="sv-day-4" value="4" checked> 목
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px">
+              <input type="checkbox" id="sv-day-5" value="5" checked> 금
+            </label>
+          </div>
+        </div>
       </div>
 
       <!-- 주교재 전용 필드 -->
@@ -1102,12 +1124,18 @@ function formatDateKo(d) {
 }
 
 // n번째 학습일 날짜 반환 (시작날짜로부터)
-function getStudyDates(startDateStr, count) {
+// studyDays: null 또는 [1,3,5] 형태 (1=월~5=금)
+// null이면 기존 방식(월~금 전체) 그대로
+function getStudyDates(startDateStr, count, studyDays) {
   const results = [];
   const cur = new Date(startDateStr + 'T00:00:00');
+  // studyDays 없거나 빈배열이면 전체 요일(기존 방식)
+  const days = (studyDays && studyDays.length > 0) ? studyDays : null;
   let safety = 0;
   while (results.length < count && safety < 1000) {
-    if (isStudyDay(cur)) results.push(formatDate(cur));
+    const dow = cur.getDay(); // 0=일,6=토
+    const isTargetDay = days ? days.includes(dow) : true;
+    if (isTargetDay && isStudyDay(cur)) results.push(formatDate(cur));
     cur.setDate(cur.getDate() + 1);
     safety++;
   }
@@ -1115,8 +1143,8 @@ function getStudyDates(startDateStr, count) {
 }
 
 // 마지막 학습일 계산
-function getLastStudyDate(startDateStr, count) {
-  const dates = getStudyDates(startDateStr, count);
+function getLastStudyDate(startDateStr, count, studyDays) {
+  const dates = getStudyDates(startDateStr, count, studyDays);
   return dates.length > 0 ? dates[dates.length - 1] : startDateStr;
 }
 
@@ -1252,7 +1280,7 @@ function renderDashboard() {
     const count = (a.type==='SV'||a.type==='HV') ? (a.sets||0) : (a.lessons||0);
     if (!count) return;
 
-    const endDate = getLastStudyDate(a.startDate, count);
+    const endDate = getLastStudyDate(a.startDate, count, a.type==='SV' ? (a.studyDays||null) : null);
     // 종료일 기준 오늘과의 차이(일)
     const diffMs  = new Date(endDate) - new Date(today);
     const diffDay = Math.round(diffMs / 86400000); // 음수 = 이미 종료
@@ -1966,7 +1994,7 @@ function renderAssignPage() {
             const isTextbook = a.type==='MAIN'||a.type==='SUB';
             // 보카: 세트수로 자동계산 / 교재: 직접 입력한 endDate 사용
             const endDate = isVoca
-              ? (a.sets ? getLastStudyDate(a.startDate, a.sets) : '—')
+              ? (a.sets ? getLastStudyDate(a.startDate, a.sets, a.type==='SV' ? (a.studyDays||null) : null) : '—')
               : (a.endDate || null);
 
             const chipStart = `<span style="background:#F0EEE8;color:#5A5955;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">${a.startDate} 시작</span>`;
@@ -2238,7 +2266,7 @@ function renderStatusPage() {
     // 오늘 기준 진행중인 과제 (startDate <= today, 마지막 학습일 >= today)
     const active = list.find(a => {
       if (!a.startDate || !a.sets) return false;
-      const last = getLastStudyDate(a.startDate, a.sets);
+      const last = getLastStudyDate(a.startDate, a.sets, a.type==='SV' ? (a.studyDays||null) : null);
       return a.startDate <= today && last >= today;
     });
 
@@ -2252,7 +2280,7 @@ function renderStatusPage() {
     // 오늘까지 진행한 세트 수: 시작일~오늘 사이의 학습일 수
     let doneSets = 0;
     if (!isDone && total > 0) {
-      const allDates = getStudyDates(target.startDate, total);
+      const allDates = getStudyDates(target.startDate, total, target.type==='SV' ? (target.studyDays||null) : null);
       doneSets = allDates.filter(d => d <= today).length;
     } else if (isDone) {
       doneSets = total;
@@ -2471,7 +2499,7 @@ function renderHistoryPage() {
         // 보카: 세트수로 계산
         const count = a.sets || 0;
         if (count > 0) {
-          const end = getLastStudyDate(a.startDate, count);
+          const end = getLastStudyDate(a.startDate, count, a.type==='SV' ? (a.studyDays||null) : null);
           if (!maxDate || end > maxDate) maxDate = end;
         }
       } else {
@@ -2511,7 +2539,7 @@ function renderHistoryPage() {
         // 보카: 세트수 기반 날짜 범위
         const count = assign.sets || 0;
         if (count <= 0) continue;
-        const studyDates = getStudyDates(assign.startDate, count);
+        const studyDates = getStudyDates(assign.startDate, count, type==='SV' ? (assign.studyDays||null) : null);
         const idx = studyDates.indexOf(dateStr);
         if (idx < 0) continue;
         const num = String(idx + 1).padStart(2, '0');
@@ -3261,8 +3289,13 @@ function openAddAssignModal(classId, studentId) {
   document.getElementById('assign-recall').value = '';
   document.getElementById('assign-test').value = '';
   document.getElementById('assign-test-type').value = '객관식';
+  // 수업보카 요일 체크박스 초기화 — 전체 체크(월~금)
+  [1,2,3,4,5].forEach(d => {
+    const el = document.getElementById(`sv-day-${d}`);
+    if (el) el.checked = true;
+  });
   document.querySelector('input[name="assign-type"][value="SV"]').checked = true;
-  onTypeChange(); // voca-fields ON, textbook-fields OFF, sub-fields OFF, end-date-field OFF
+  onTypeChange(); // voca-fields ON, sv-days-field ON, textbook-fields OFF 등
 
   openModal('modal-add-assign');
   _resetBatchState();
@@ -3302,6 +3335,7 @@ function onAssignClassChange() {
 function onTypeChange() {
   const type = document.querySelector('input[name="assign-type"]:checked')?.value;
   const isVoca = type === 'SV' || type === 'HV';
+  const isSV   = type === 'SV';
   const isMain = type === 'MAIN';
   const isSub  = type === 'SUB';
   const isTextbook = isMain || isSub;
@@ -3309,6 +3343,9 @@ function onTypeChange() {
   document.getElementById('textbook-fields').style.display  = isMain     ? '' : 'none';
   document.getElementById('sub-fields').style.display       = isSub      ? '' : 'none';
   document.getElementById('end-date-field').style.display   = isTextbook ? '' : 'none';
+  // SV(수업보카)일 때만 요일 선택 표시
+  const svDaysEl = document.getElementById('sv-days-field');
+  if (svDaysEl) svDaysEl.style.display = isSV ? '' : 'none';
   // 교재로 바꾸면 종료일 min을 시작일로 동기화
   if (isTextbook) syncEndDateMin();
 }
@@ -3362,8 +3399,8 @@ function getSelectedStudentIds() {
 // ── 날짜 범위 겹침 체크 ───────────────────────────────────
 function datesOverlap(a, b) {
   if (!a.startDate || !b.startDate || !a.count || !b.count) return false;
-  const aEnd = getLastStudyDate(a.startDate, a.count);
-  const bEnd = getLastStudyDate(b.startDate, b.count);
+  const aEnd = getLastStudyDate(a.startDate, a.count, a.studyDays||null);
+  const bEnd = getLastStudyDate(b.startDate, b.count, b.studyDays||null);
   return a.startDate <= bEnd && b.startDate <= aEnd;
 }
 
@@ -3392,6 +3429,7 @@ function saveAssignConfirm() {
   const isTextbook = isMain || isSub;
   let sets, perSet, memorize, recall, test, testType;
   let inputEndDate = null; // 교재 종료일 (선택 입력)
+  let studyDays = null;   // SV 수업 요일 (null = 전체, 기존 호환)
 
   if (isVoca) {
     sets     = parseInt(document.getElementById('assign-sets').value)     || 0;
@@ -3402,6 +3440,19 @@ function saveAssignConfirm() {
     testType = document.getElementById('assign-test-type').value || '';
     if (!sets)   { toast('세트 수를 입력하세요.', 'error'); return; }
     if (!perSet) { toast('1set 당 단어 수를 입력하세요.', 'error'); return; }
+
+    // SV(수업보카)일 때 수업 요일 수집
+    if (type === 'SV') {
+      const checked = [1,2,3,4,5].filter(d => {
+        const el = document.getElementById(`sv-day-${d}`);
+        return el && el.checked;
+      });
+      if (checked.length === 0) {
+        toast('수업 요일을 1개 이상 선택하세요.', 'error'); return;
+      }
+      // 전체(월~금) 선택이면 null 저장 (기존 방식과 동일, 용량 절약)
+      studyDays = checked.length === 5 ? null : checked;
+    }
   } else {
     // 교재: 종료일 입력값 읽기 (선택 사항)
     const rawEnd = document.getElementById('assign-end').value;
@@ -3426,6 +3477,7 @@ function saveAssignConfirm() {
       studentId, classId, type, book, startDate,
       endDate: isTextbook ? inputEndDate : null,
       ...(isVoca ? {sets, perSet, memorize, recall, test, testType} : {}),
+      ...(type === 'SV' && studyDays ? {studyDays} : {}),
       createdAt: new Date().toISOString()
     };
 
@@ -3435,8 +3487,8 @@ function saveAssignConfirm() {
       const overlapping = existingList.find(ex => {
         const exCount = ex.sets || 0;
         return datesOverlap(
-          {startDate: ex.startDate, count: exCount},
-          {startDate, count: newCount}
+          {startDate: ex.startDate, count: exCount, studyDays: ex.studyDays||null},
+          {startDate, count: newCount, studyDays: studyDays||null}
         );
       });
       if (overlapping) {
