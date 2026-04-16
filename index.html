@@ -235,18 +235,18 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   border-right:2px solid var(--border2);border-bottom:2px solid var(--border2);
   top:36px;
 }
-/* 1행 일반 헤더 (이름) — 틈 제거: border-bottom 없앰 */
+/* 1행 일반 헤더 (이름) — 틈 제거 */
 .history-table th.th-name{
   position:sticky;top:0;z-index:3;
-  border-bottom:none;border-left:2px solid var(--border2);
+  border-bottom:none;border-left:2px solid var(--border2);border-top:none;
   font-size:12px;font-weight:700;color:var(--text);
   background:#F8F7F3;padding:6px 10px;
 }
-/* 2행 일반 헤더 (과목) — 가독성: 배경 구분 */
+/* 2행 일반 헤더 (과목) — 틈 완전 제거: border-top:none 추가 */
 .history-table th.th-type{
   position:sticky;top:36px;z-index:3;
   min-width:80px;font-size:10px;font-weight:700;
-  border-bottom:2px solid var(--border2);
+  border-bottom:2px solid var(--border2);border-top:none;
   padding:4px 6px;letter-spacing:.03em;
 }
 .history-table th.th-type.type-sv{background:#FFF3E8;color:#A84E00}
@@ -2648,8 +2648,23 @@ function renderHistoryPage() {
   }
 
   const classTabsHTML = `
-    <div class="tab-bar">
-      ${DB.classes.map(cls=>`<button class="tab-btn ${currentClassFilter===cls.id?'active':''}" onclick="showPage('history','${cls.id}')">${cls.name}</button>`).join('')}
+    <div style="display:flex;align-items:stretch;border-bottom:2px solid var(--border);margin-bottom:22px;gap:8px">
+      <div style="display:flex;gap:2px;flex:1;align-items:flex-end">
+        ${DB.classes.map(cls=>`<button class="tab-btn ${currentClassFilter===cls.id?'active':''}" onclick="showPage('history','${cls.id}')">${cls.name}</button>`).join('')}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;padding-bottom:6px">
+        <div style="position:relative">
+          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3)">🔍</span>
+          <input
+            id="history-stu-search"
+            class="form-input"
+            placeholder="학생 검색..."
+            style="padding-left:28px;font-size:12px;height:30px;width:130px;line-height:1"
+            oninput="filterHistoryColumns(this.value)"
+            oncompositionend="filterHistoryColumns(this.value)">
+        </div>
+        <span id="history-stu-count" style="font-size:11px;color:var(--text3);white-space:nowrap"></span>
+      </div>
     </div>`;
 
   if (!currentClassFilter && DB.classes.length > 0) currentClassFilter = DB.classes[0].id;
@@ -2785,19 +2800,6 @@ function renderHistoryPage() {
       <div class="page-sub">날짜별 학생 학습 현황 (월~금, 공휴일 제외) — 날짜열과 학생이름행이 스크롤 시 고정됩니다</div>
     </div>
     ${classTabsHTML}
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-      <div style="position:relative;flex:1;max-width:300px">
-        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3)">🔍</span>
-        <input
-          id="history-stu-search"
-          class="form-input"
-          placeholder="학생 이름 검색..."
-          style="padding-left:32px;font-size:13px"
-          oninput="filterHistoryColumns(this.value)"
-          oncompositionend="filterHistoryColumns(this.value)">
-      </div>
-      <span id="history-stu-count" style="font-size:12px;color:var(--text3)">${students.length}명</span>
-    </div>
     <div class="card">
       <div class="card-header"><span class="card-title">${cls.name} — 학습이력</span><span class="badge b-blue">${students.length}명</span></div>
       <div style="padding:0;overflow:hidden;border-radius:0 0 var(--r) var(--r)">
