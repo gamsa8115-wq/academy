@@ -224,28 +224,35 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 /* 1행: 날짜 헤더 (좌+상 고정) */
 .history-table th.th-date-r1{
   text-align:left;position:sticky;left:0;top:0;z-index:6;
-  background:#F8F7F3;min-width:110px;
-  border-right:2px solid var(--border2);border-bottom:2px solid var(--border2);
+  background:#F0EEE8;min-width:110px;
+  border-right:2px solid var(--border2);border-bottom:none;
+  padding:0 10px;
 }
 /* 2행: 날짜/요일 헤더 (좌+상 고정) */
 .history-table th.th-date-r2{
   text-align:left;position:sticky;left:0;z-index:5;
-  background:#F8F7F3;min-width:110px;
+  background:#F0EEE8;min-width:110px;
   border-right:2px solid var(--border2);border-bottom:2px solid var(--border2);
   top:36px;
 }
-/* 1행 일반 헤더 (이름) */
+/* 1행 일반 헤더 (이름) — 틈 제거: border-bottom 없앰 */
 .history-table th.th-name{
   position:sticky;top:0;z-index:3;
-  border-bottom:1px solid var(--border2);border-left:2px solid var(--border2);
+  border-bottom:none;border-left:2px solid var(--border2);
   font-size:12px;font-weight:700;color:var(--text);
+  background:#F8F7F3;padding:6px 10px;
 }
-/* 2행 일반 헤더 (과목) */
+/* 2행 일반 헤더 (과목) — 가독성: 배경 구분 */
 .history-table th.th-type{
   position:sticky;top:36px;z-index:3;
-  min-width:78px;font-size:9px;
+  min-width:80px;font-size:10px;font-weight:700;
   border-bottom:2px solid var(--border2);
+  padding:4px 6px;letter-spacing:.03em;
 }
+.history-table th.th-type.type-sv{background:#FFF3E8;color:#A84E00}
+.history-table th.th-type.type-hv{background:#E8F1FF;color:#1055A8}
+.history-table th.th-type.type-main{background:#EAF5E8;color:#1B5E20}
+.history-table th.th-type.type-sub{background:#FBE8F3;color:#880E4F}
 /* 데이터 셀 */
 .history-table td{padding:6px 8px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);text-align:center;min-width:78px}
 /* 날짜 열 (좌 고정) */
@@ -2251,6 +2258,32 @@ function clearEndDate(assignId) {
 }
 
 // ── 반별학습이력: 오늘 날짜 행으로 스크롤 ───────────────
+// 반별학습이력 학생 열 검색 필터
+function filterHistoryColumns(query) {
+  const q = (query || '').trim().toLowerCase();
+  const table = document.getElementById('history-main-table');
+  const countEl = document.getElementById('history-stu-count');
+  if (!table) return;
+
+  // th-name에서 학생 수 파악
+  const nameHeaders = table.querySelectorAll('th.th-name');
+  let visibleCount = 0;
+
+  nameHeaders.forEach(th => {
+    const col = th.dataset.stuCol;
+    const name = th.textContent.toLowerCase();
+    const show = !q || name.includes(q);
+    if (show) visibleCount++;
+
+    // 헤더 열 표시/숨김
+    table.querySelectorAll(`[data-stu-col="${col}"]`).forEach(el => {
+      el.style.display = show ? '' : 'none';
+    });
+  });
+
+  if (countEl) countEl.textContent = q ? `${visibleCount}명 표시중` : `${nameHeaders.length}명`;
+}
+
 function scrollHistoryToToday() {
   const wrap = document.getElementById('history-scroll-wrap');
   if (!wrap) return;
@@ -2721,10 +2754,10 @@ function renderHistoryPage() {
   const theadHTML = `
     <tr>
       <th class="th-date-r1" rowspan="2">날짜</th>
-      ${students.map(stu=>`<th class="th-name" colspan="${colsPerStu}">${stu.name}</th>`).join('')}
+      ${students.map((stu,i)=>`<th class="th-name" colspan="${colsPerStu}" data-stu-col="${i}">${stu.name}</th>`).join('')}
     </tr>
     <tr>
-      ${students.map(()=>typeKeys.map(t=>`<th class="th-type">${typeLabels[t]}</th>`).join('')).join('')}
+      ${students.map((_,i)=>typeKeys.map(t=>`<th class="th-type type-${t.toLowerCase()}" data-stu-col="${i}">${typeLabels[t]}</th>`).join('')).join('')}
     </tr>`;
 
   const tbodyHTML = dates.map(dateStr => {
@@ -2739,9 +2772,9 @@ function renderHistoryPage() {
     return `
       <tr ${todayId} style="${todayStyle}">
         <td class="td-date" style="${isToday?'color:#8F5409;font-weight:800;':''}">${isToday?'▶ ':''} ${dayLabel}</td>
-        ${students.map(stu=>typeKeys.map(type=>{
+        ${students.map((stu,si)=>typeKeys.map((type,ti)=>{
           const val = getCellData(stu, dateStr, type);
-          return val ? `<td class="${typeClasses[type]}">${val}</td>` : `<td></td>`;
+          return val ? `<td class="${typeClasses[type]}" data-stu-col="${si}">${val}</td>` : `<td data-stu-col="${si}"></td>`;
         }).join('')).join('')}
       </tr>`;
   }).join('');
@@ -2752,11 +2785,24 @@ function renderHistoryPage() {
       <div class="page-sub">날짜별 학생 학습 현황 (월~금, 공휴일 제외) — 날짜열과 학생이름행이 스크롤 시 고정됩니다</div>
     </div>
     ${classTabsHTML}
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="position:relative;flex:1;max-width:300px">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3)">🔍</span>
+        <input
+          id="history-stu-search"
+          class="form-input"
+          placeholder="학생 이름 검색..."
+          style="padding-left:32px;font-size:13px"
+          oninput="filterHistoryColumns(this.value)"
+          oncompositionend="filterHistoryColumns(this.value)">
+      </div>
+      <span id="history-stu-count" style="font-size:12px;color:var(--text3)">${students.length}명</span>
+    </div>
     <div class="card">
       <div class="card-header"><span class="card-title">${cls.name} — 학습이력</span><span class="badge b-blue">${students.length}명</span></div>
       <div style="padding:0;overflow:hidden;border-radius:0 0 var(--r) var(--r)">
         <div class="history-wrap" id="history-scroll-wrap" data-today="${today}">
-          <table class="history-table">
+          <table class="history-table" id="history-main-table">
             <thead>${theadHTML}</thead>
             <tbody>${tbodyHTML}</tbody>
           </table>
