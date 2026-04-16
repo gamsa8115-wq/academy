@@ -1268,6 +1268,19 @@ function showPage(page, classId) {
   };
   if (pages[page]) content.innerHTML = pages[page]();
   else content.innerHTML = `<div class="empty-state"><div class="empty-title">준비 중</div></div>`;
+
+  // 반별학습이력: 렌더 완료 후 오늘 날짜 행으로 스크롤
+  // rAF 2중 중첩: 첫 프레임(레이아웃 계산) + 두번째 프레임(페인트 완료) 후 실행
+  // setTimeout 150ms: 대용량 테이블도 완전 렌더링 보장
+  if (page === 'history') {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollHistoryToToday();
+        // 혹시 레이아웃이 아직 안 잡혔으면 150ms 후 한 번 더
+        setTimeout(() => { scrollHistoryToToday(); }, 150);
+      });
+    });
+  }
 }
 
 function renderSidebarClasses() {
@@ -2237,6 +2250,32 @@ function clearEndDate(assignId) {
   showPage(currentPage);
 }
 
+// ── 반별학습이력: 오늘 날짜 행으로 스크롤 ───────────────
+function scrollHistoryToToday() {
+  const wrap = document.getElementById('history-scroll-wrap');
+  if (!wrap) return;
+
+  // 오늘 행 찾기
+  let target = document.getElementById('history-today-row');
+
+  if (!target) {
+    // 오늘이 주말/공휴일이거나 날짜 범위 밖인 경우
+    // → 마지막 tr 행(가장 최근 날짜)으로 스크롤
+    const rows = wrap.querySelectorAll('tbody tr');
+    if (rows.length > 0) target = rows[rows.length - 1];
+  }
+
+  if (!target) return;
+
+  // scrollTop 직접 계산 방식 (getBoundingClientRect보다 안정적)
+  // offsetTop: 테이블 기준 행 위치
+  // wrap.scrollTop: 현재 스크롤 위치
+  // thead 높이(약 72px) 만큼 여백 확보
+  const theadHeight = 72;
+  const targetTop = target.offsetTop;
+  wrap.scrollTop = Math.max(0, targetTop - theadHeight);
+}
+
 function toggleStuDetail(stuId) {
   const body  = document.getElementById('acc-body-' + stuId);
   const arrow = document.getElementById('acc-arrow-' + stuId);
@@ -2692,9 +2731,14 @@ function renderHistoryPage() {
     const dt = new Date(dateStr+'T00:00:00');
     const days=['일','월','화','수','목','금','토'];
     const dayLabel = `${dt.getMonth()+1}/${dt.getDate()}(${days[dt.getDay()]})`;
+    const isToday = dateStr === today;
+    const todayStyle = isToday
+      ? 'background:#FFF8E7;font-weight:700;color:#8F5409;'
+      : '';
+    const todayId = isToday ? 'id="history-today-row"' : '';
     return `
-      <tr>
-        <td class="td-date">${dayLabel}</td>
+      <tr ${todayId} style="${todayStyle}">
+        <td class="td-date" style="${isToday?'color:#8F5409;font-weight:800;':''}">${isToday?'▶ ':''} ${dayLabel}</td>
         ${students.map(stu=>typeKeys.map(type=>{
           const val = getCellData(stu, dateStr, type);
           return val ? `<td class="${typeClasses[type]}">${val}</td>` : `<td></td>`;
@@ -2711,7 +2755,7 @@ function renderHistoryPage() {
     <div class="card">
       <div class="card-header"><span class="card-title">${cls.name} — 학습이력</span><span class="badge b-blue">${students.length}명</span></div>
       <div style="padding:0;overflow:hidden;border-radius:0 0 var(--r) var(--r)">
-        <div class="history-wrap">
+        <div class="history-wrap" id="history-scroll-wrap" data-today="${today}">
           <table class="history-table">
             <thead>${theadHTML}</thead>
             <tbody>${tbodyHTML}</tbody>
