@@ -212,7 +212,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 /* ── 반별 이력 테이블 ── */
 .history-wrap{overflow:auto;max-height:calc(100vh - 260px);border-radius:0 0 var(--r) var(--r)}
-.history-table{border-collapse:collapse;white-space:nowrap;font-size:12px}
+.history-table{border-collapse:separate;border-spacing:0;white-space:nowrap;font-size:12px}
 /* 공통 헤더 셀 */
 .history-table th{
   padding:7px 10px;font-size:10px;font-weight:700;color:var(--text3);
@@ -225,41 +225,50 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .history-table th.th-date-r1{
   text-align:left;position:sticky;left:0;top:0;z-index:6;
   background:#F0EEE8;min-width:110px;
-  border-right:2px solid var(--border2);border-bottom:none;
+  border-right:2px solid var(--border2);
+  border-bottom:none;
   padding:0 10px;
 }
 /* 2행: 날짜/요일 헤더 (좌+상 고정) */
 .history-table th.th-date-r2{
   text-align:left;position:sticky;left:0;z-index:5;
   background:#F0EEE8;min-width:110px;
-  border-right:2px solid var(--border2);border-bottom:2px solid var(--border2);
-  top:36px;
+  border-right:2px solid var(--border2);
+  border-top:none;
+  border-bottom:2px solid var(--border2);
+  top:34px;
 }
-/* 1행 일반 헤더 (이름) — 틈 제거 */
+/* 1행 일반 헤더 (이름) */
 .history-table th.th-name{
   position:sticky;top:0;z-index:3;
-  border-bottom:none;border-left:2px solid var(--border2);border-top:none;
+  border-bottom:none;
+  border-top:0;
+  border-left:2px solid var(--border2);
   font-size:12px;font-weight:700;color:var(--text);
   background:#F8F7F3;padding:6px 10px;
+  height:34px;box-sizing:border-box;
 }
-/* 2행 일반 헤더 (과목) — 틈 완전 제거: border-top:none 추가 */
+/* 2행 일반 헤더 (과목) */
 .history-table th.th-type{
-  position:sticky;top:36px;z-index:3;
+  position:sticky;top:34px;z-index:3;
   min-width:80px;font-size:10px;font-weight:700;
-  border-bottom:2px solid var(--border2);border-top:none;
+  border-top:none;
+  border-bottom:2px solid var(--border2);
   padding:4px 6px;letter-spacing:.03em;
 }
 .history-table th.th-type.type-sv{background:#FFF3E8;color:#A84E00}
 .history-table th.th-type.type-hv{background:#E8F1FF;color:#1055A8}
 .history-table th.th-type.type-main{background:#EAF5E8;color:#1B5E20}
 .history-table th.th-type.type-sub{background:#FBE8F3;color:#880E4F}
-/* 데이터 셀 */
-.history-table td{padding:6px 8px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);text-align:center;min-width:78px}
+/* 데이터 셀 — border-separate 방식: 각 셀 독립 border */
+.history-table td{padding:6px 8px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);border-top:0;text-align:center;min-width:78px}
+/* 첫 번째 데이터 행 상단 선 */
+.history-table tbody tr:first-child td{border-top:0}
 /* 날짜 열 (좌 고정) */
 .history-table td.td-date{
   text-align:left;position:sticky;left:0;background:#FAFAF8;z-index:2;
   border-right:2px solid var(--border2);font-size:11px;color:var(--text2);
-  font-weight:600;padding:6px 10px;
+  font-weight:600;padding:6px 10px;border-top:0;
 }
 .history-table tr:hover td{background:#F5F4F0}
 .history-table tr:hover td.td-date{background:#EFEDE8}
@@ -2265,7 +2274,6 @@ function filterHistoryColumns(query) {
   const countEl = document.getElementById('history-stu-count');
   if (!table) return;
 
-  // th-name에서 학생 수 파악
   const nameHeaders = table.querySelectorAll('th.th-name');
   let visibleCount = 0;
 
@@ -2274,8 +2282,6 @@ function filterHistoryColumns(query) {
     const name = th.textContent.toLowerCase();
     const show = !q || name.includes(q);
     if (show) visibleCount++;
-
-    // 헤더 열 표시/숨김
     table.querySelectorAll(`[data-stu-col="${col}"]`).forEach(el => {
       el.style.display = show ? '' : 'none';
     });
@@ -2285,6 +2291,17 @@ function filterHistoryColumns(query) {
 }
 
 function scrollHistoryToToday() {
+  // th-name 실제 높이로 th-type과 th-date-r2의 top 값 동적 보정
+  const table = document.getElementById('history-main-table');
+  if (table) {
+    const thName = table.querySelector('th.th-name');
+    if (thName) {
+      const h = thName.getBoundingClientRect().height;
+      table.querySelectorAll('th.th-type, th.th-date-r2').forEach(el => {
+        el.style.top = h + 'px';
+      });
+    }
+  }
   const wrap = document.getElementById('history-scroll-wrap');
   if (!wrap) return;
 
