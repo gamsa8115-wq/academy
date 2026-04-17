@@ -212,6 +212,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 /* ── 반별 이력 테이블 ── */
 .history-wrap{overflow:auto;max-height:calc(100vh - 260px);border-radius:0 0 var(--r) var(--r)}
+.hf-btn{font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;cursor:pointer;transition:opacity .15s;font-family:inherit}
+.hf-btn.hf-off{opacity:.35;text-decoration:line-through}
 .history-table{border-collapse:separate;border-spacing:0;white-space:nowrap;font-size:12px}
 /* 공통 헤더 셀 */
 .history-table th{
@@ -2010,6 +2012,8 @@ function markAllPresent(classId, dateStr) {
 // 열린 학생 ID를 기억 (페이지 재렌더 시 상태 유지)
 const _openStudents = new Set();
 const _openDone     = new Set(); // 완료 과제 섹션 열림 상태 (학생별)
+// 반별학습이력 과제 유형 필터 상태 (문제4: 탭 변경해도 유지)
+const _historyTypeFilter = new Set(['SV','HV','MAIN','SUB']); // 기본: 전체
 
 // ── 과제 완료 여부 판단 공통 함수 ─────────────────────────
 // 오류1 해결: 유형별 완료 기준 통일
@@ -2268,26 +2272,64 @@ function clearEndDate(assignId) {
 
 // ── 반별학습이력: 오늘 날짜 행으로 스크롤 ───────────────
 // 반별학습이력 학생 열 검색 필터
-function filterHistoryColumns(query) {
-  const q = (query || '').trim().toLowerCase();
+// 과제 유형 필터 토글 (문제3,4,5 해결)
+function toggleHistoryType(type) {
+  if (_historyTypeFilter.has(type)) {
+    // 마지막 하나는 해제 불가 (문제5)
+    if (_historyTypeFilter.size === 1) {
+      toast('최소 1개 이상 선택해야 합니다.', 'warning'); return;
+    }
+    _historyTypeFilter.delete(type);
+  } else {
+    _historyTypeFilter.add(type);
+  }
+  applyHistoryFilter();
+}
+
+function applyHistoryFilter() {
   const table = document.getElementById('history-main-table');
-  const countEl = document.getElementById('history-stu-count');
   if (!table) return;
 
-  const nameHeaders = table.querySelectorAll('th.th-name');
-  let visibleCount = 0;
+  const stuSearch = (document.getElementById('history-stu-search')?.value || '').trim().toLowerCase();
 
-  nameHeaders.forEach(th => {
-    const col = th.dataset.stuCol;
-    const name = th.textContent.toLowerCase();
-    const show = !q || name.includes(q);
-    if (show) visibleCount++;
-    table.querySelectorAll(`[data-stu-col="${col}"]`).forEach(el => {
-      el.style.display = show ? '' : 'none';
-    });
+  // 버튼 상태 업데이트
+  ['SV','HV','MAIN','SUB'].forEach(t => {
+    const btn = document.getElementById(`hf-btn-${t}`);
+    if (btn) btn.classList.toggle('hf-off', !_historyTypeFilter.has(t));
   });
 
-  if (countEl) countEl.textContent = q ? `${visibleCount}명 표시중` : `${nameHeaders.length}명`;
+  // 문제1,2 해결: th-name colspan 재계산
+  const visibleTypes = ['SV','HV','MAIN','SUB'].filter(t => _historyTypeFilter.has(t));
+  table.querySelectorAll('th.th-name').forEach(th => {
+    const col = th.dataset.stuCol;
+    const stuName = th.textContent.toLowerCase();
+    const stuVisible = !stuSearch || stuName.includes(stuSearch);
+    if (!stuVisible) { th.style.display = 'none'; return; }
+    th.style.display = '';
+    th.colSpan = visibleTypes.length || 1;
+  });
+
+  // 문제3 해결: 학생 + 유형 조합으로 열 표시/숨김
+  table.querySelectorAll('[data-stu-col][data-type]').forEach(el => {
+    const col  = el.dataset.stuCol;
+    const type = el.dataset.type;
+    const nameHdr = table.querySelector(`th.th-name[data-stu-col="${col}"]`);
+    const stuVisible = nameHdr ? nameHdr.style.display !== 'none' : true;
+    const typeVisible = _historyTypeFilter.has(type);
+    el.style.display = (stuVisible && typeVisible) ? '' : 'none';
+  });
+
+  // 학생 수 업데이트
+  const countEl = document.getElementById('history-stu-count');
+  if (countEl) {
+    const total   = table.querySelectorAll('th.th-name').length;
+    const visible = [...table.querySelectorAll('th.th-name')].filter(th => th.style.display !== 'none').length;
+    countEl.textContent = visible < total ? `${visible}명 표시중` : `${total}명`;
+  }
+}
+
+function filterHistoryColumns(query) {
+  applyHistoryFilter();
 }
 
 function scrollHistoryToToday() {
@@ -2302,6 +2344,10 @@ function scrollHistoryToToday() {
       });
     }
   }
+
+  // 문제4 해결: 탭 변경 후에도 필터 상태 유지 적용
+  applyHistoryFilter();
+
   const wrap = document.getElementById('history-scroll-wrap');
   if (!wrap) return;
 
@@ -2665,7 +2711,7 @@ function renderHistoryPage() {
   }
 
   const classTabsHTML = `
-    <div style="display:flex;align-items:stretch;border-bottom:2px solid var(--border);margin-bottom:22px;gap:8px">
+    <div style="display:flex;align-items:stretch;border-bottom:2px solid var(--border);margin-bottom:16px;gap:8px">
       <div style="display:flex;gap:2px;flex:1;align-items:flex-end">
         ${DB.classes.map(cls=>`<button class="tab-btn ${currentClassFilter===cls.id?'active':''}" onclick="showPage('history','${cls.id}')">${cls.name}</button>`).join('')}
       </div>
@@ -2682,6 +2728,14 @@ function renderHistoryPage() {
         </div>
         <span id="history-stu-count" style="font-size:11px;color:var(--text3);white-space:nowrap"></span>
       </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:11px;font-weight:700;color:var(--text3)">표시:</span>
+      <button id="hf-btn-SV"   onclick="toggleHistoryType('SV')"   class="hf-btn" style="background:#FFF3E8;color:#A84E00;border:1.5px solid #A84E00">수업V</button>
+      <button id="hf-btn-HV"   onclick="toggleHistoryType('HV')"   class="hf-btn" style="background:#E8F1FF;color:#1055A8;border:1.5px solid #1055A8">홈V</button>
+      <button id="hf-btn-MAIN" onclick="toggleHistoryType('MAIN')" class="hf-btn" style="background:#EAF5E8;color:#1B5E20;border:1.5px solid #1B5E20">주교재</button>
+      <button id="hf-btn-SUB"  onclick="toggleHistoryType('SUB')"  class="hf-btn" style="background:#FBE8F3;color:#880E4F;border:1.5px solid #880E4F">부교재</button>
+      <span style="font-size:10px;color:var(--text3);margin-left:4px">클릭하면 해당 열 숨김/표시</span>
     </div>`;
 
   if (!currentClassFilter && DB.classes.length > 0) currentClassFilter = DB.classes[0].id;
@@ -2789,7 +2843,7 @@ function renderHistoryPage() {
       ${students.map((stu,i)=>`<th class="th-name" colspan="${colsPerStu}" data-stu-col="${i}">${stu.name}</th>`).join('')}
     </tr>
     <tr>
-      ${students.map((_,i)=>typeKeys.map(t=>`<th class="th-type type-${t.toLowerCase()}" data-stu-col="${i}">${typeLabels[t]}</th>`).join('')).join('')}
+      ${students.map((_,i)=>typeKeys.map(t=>`<th class="th-type type-${t.toLowerCase()}" data-stu-col="${i}" data-type="${t}">${typeLabels[t]}</th>`).join('')).join('')}
     </tr>`;
 
   const tbodyHTML = dates.map(dateStr => {
@@ -2806,7 +2860,7 @@ function renderHistoryPage() {
         <td class="td-date" style="${isToday?'color:#8F5409;font-weight:800;':''}">${isToday?'▶ ':''} ${dayLabel}</td>
         ${students.map((stu,si)=>typeKeys.map((type,ti)=>{
           const val = getCellData(stu, dateStr, type);
-          return val ? `<td class="${typeClasses[type]}" data-stu-col="${si}">${val}</td>` : `<td data-stu-col="${si}"></td>`;
+          return val ? `<td class="${typeClasses[type]}" data-stu-col="${si}" data-type="${type}">${val}</td>` : `<td data-stu-col="${si}" data-type="${type}"></td>`;
         }).join('')).join('')}
       </tr>`;
   }).join('');
