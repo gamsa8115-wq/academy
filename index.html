@@ -1458,6 +1458,15 @@ function renderDashboard() {
     // 표시 범위: 3일 이내(0~3)만 표시. 이미 종료된 과제(diffDay < 0)는 제외
     if (diffDay < 0 || diffDay > 3) return;
 
+    // 이미 같은 유형의 다음 과제가 설정된 학생은 알림 제외
+    const hasNextAssign = DB.assignments.some(x =>
+      x.studentId === a.studentId &&
+      x.type === a.type &&
+      x.id !== a.id &&
+      x.startDate > endDate
+    );
+    if (hasNextAssign) return;
+
     const stu = getStudentById(a.studentId);
     const cls = getClassById(a.classId);
     if (!stu || !cls) return;
@@ -2267,6 +2276,8 @@ function markAllPresent(classId, dateStr) {
 // 열린 학생 ID를 기억 (페이지 재렌더 시 상태 유지)
 const _openStudents = new Set();
 const _openDone     = new Set(); // 완료 과제 섹션 열림 상태 (학생별)
+let _assignViewMode = 'student'; // 'student' | 'type'
+function setAssignViewMode(mode) { _assignViewMode = mode; showPage('assign'); }
 // 반별학습이력 과제 유형 필터 상태 (문제4: 탭 변경해도 유지)
 const _historyTypeFilter = new Set(['SV','HV','MAIN','SUB']); // 기본: 전체
 
@@ -2309,7 +2320,7 @@ function renderAssignPage() {
       ${DB.classes.map(cls=>`<button class="tab-btn ${currentClassFilter===cls.id?'active':''}" onclick="showPage('assign','${cls.id}')">${cls.name}</button>`).join('')}
     </div>`;
 
-  const assignHTML = showClasses.map((cls) => {
+  const assignHTML = _assignViewMode !== 'student' ? '' : showClasses.map((cls) => {
     const realIdx = DB.classes.findIndex(c=>c.id===cls.id);
     const students = getStudentsByClass(cls.id);
 
@@ -2322,14 +2333,18 @@ function renderAssignPage() {
         <div class="card-body"><div class="empty-state" style="padding:20px"><div class="empty-sub">이 반에 학생이 없습니다.</div></div></div>
       </div>`;
 
-    const studentsHTML = students.map(stu => {
+  // 과제 유형 정렬 기준 (SV→HV→MAIN→SUB, 같은 유형 내 시작일 최신순)
+  const _to    = {SV:0, HV:1, MAIN:2, SUB:3};
+  const _sortT = (a, b) => (_to[a.type]??9) - (_to[b.type]??9) || (b.startDate||'').localeCompare(a.startDate||'');
+
+  const studentsHTML = students.map(stu => {
       const assigns  = getAssignmentsByStudent(stu.id);
       const isOpen   = _openStudents.has(stu.id);
 
       // ── 과제 목록 (열렸을 때만 렌더) ──────────────────────
-      // 진행중 / 완료 분리 (오류1,3,4 해결)
-      const activeAssigns = assigns.filter(a => !isAssignDone(a));
-      const doneAssigns   = assigns.filter(a =>  isAssignDone(a));
+      // 진행중 / 완료 분리 + 유형 정렬 (SV→HV→MAIN→SUB, 같은 유형 내 시작일 최신순)
+      const activeAssigns = assigns.filter(a => !isAssignDone(a)).sort(_sortT);
+      const doneAssigns   = assigns.filter(a =>  isAssignDone(a)).sort(_sortT);
       const isDoneOpen    = _openDone.has(stu.id); // 오류2,6 해결
 
       // 과제 한 행 렌더 함수 (진행중/완료 공용)
@@ -2463,12 +2478,15 @@ function renderAssignPage() {
       </div>`;
   }).join('');
 
-  return `
-    <div class="page-header">
-      <div class="page-title">과제설정</div>
-      <div class="page-sub">학생 이름을 클릭하면 과제 목록이 펼쳐집니다.</div>
-    </div>
-    ${classTabsHTML}
+  const viewToggleHTML = `
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">
+      <div style="display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px;gap:3px">
+        <button class="btn btn-sm ${_assignViewMode==='student'?'btn-primary':'btn-ghost'}" onclick="setAssignViewMode('student')">학생별 보기</button>
+        <button class="btn btn-sm ${_assignViewMode==='type'?'btn-primary':'btn-ghost'}"   onclick="setAssignViewMode('type')">유형별 보기</button>
+      </div>
+    </div>`;
+
+  const mainContent = _assignViewMode === 'student' ? `
     <div class="assign-search-wrap">
       <span class="assign-search-icon">🔍</span>
       <input type="text" id="assign-stu-search" placeholder="학생 이름 검색..."
@@ -2476,7 +2494,169 @@ function renderAssignPage() {
         oncompositionend="filterAssignStudents(this.value)">
       <span id="assign-search-result" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text3)"></span>
     </div>
-    <div id="assign-student-cards">${assignHTML}</div>`;
+    <div id="assign-student-cards">${assignHTML}</div>` : `
+    <div id="assign-type-cards">${renderAssignTypeView(showClasses)}</div>`;
+
+  return `
+    <div class="page-header">
+      <div class="page-title">과제설정</div>
+      <div class="page-sub">${_assignViewMode==='student'?'학생 이름을 클릭하면 과제 목록이 펼쳐집니다.':'유형별로 학생들의 과제 현황을 확인합니다.'}</div>
+    </div>
+    ${classTabsHTML}
+    ${viewToggleHTML}
+    ${mainContent}`;
+}
+
+// ── 유형별 보기 렌더 ──────────────────────────────────────
+function renderAssignTypeView(showClasses) {
+  const today      = formatDate(new Date());
+  const TYPE_ORDER = ['SV','HV','MAIN','SUB'];
+  const TYPE_BG    = {SV:'#FFFCF8', HV:'#F5F9FF', MAIN:'#F5FDF0', SUB:'#FFF8FB'};
+  const TYPE_COL   = {SV:'#A84E00', HV:'#1055A8', MAIN:'#1B5E20', SUB:'#7A0A40'};
+  const TYPE_PCTBG = {SV:'#FFF3E8', HV:'#E8F1FF', MAIN:'#EAF4DF', SUB:'#FFE8F2'};
+  const TYPE_BORD  = {SV:'#FFCCAA', HV:'#B5D4F4', MAIN:'#C0DD97', SUB:'#F5C4D0'};
+
+  const allStudents = showClasses.flatMap(cls =>
+    getStudentsByClass(cls.id).map(stu => ({...stu, clsId: cls.id}))
+  );
+  if (allStudents.length === 0)
+    return `<div class="empty-state" style="padding:40px"><div class="empty-sub">학생이 없습니다.</div></div>`;
+
+  return TYPE_ORDER.map(type => {
+    const isVoca = type === 'SV' || type === 'HV';
+
+    // 이 타입의 모든 과제 수집
+    const allItems = [];
+    allStudents.forEach(stu => {
+      DB.assignments
+        .filter(a => a.studentId === stu.id && a.type === type)
+        .forEach(a => allItems.push({a, stu}));
+    });
+    if (allItems.length === 0) return '';
+
+    const activeItems = allItems.filter(({a}) => !isAssignDone(a));
+    const doneItems   = allItems.filter(({a}) =>  isAssignDone(a));
+
+    // book별 그룹화
+    const activeGroups = {};
+    activeItems.forEach(({a, stu}) => {
+      if (!activeGroups[a.book]) activeGroups[a.book] = {book: a.book, ref: a, items: []};
+      activeGroups[a.book].items.push({a, stu});
+    });
+    const doneGroups = {};
+    doneItems.forEach(({a, stu}) => {
+      if (!doneGroups[a.book]) doneGroups[a.book] = {book: a.book, items: []};
+      doneGroups[a.book].items.push({a, stu});
+    });
+
+    // ── active 그룹 HTML ──────────────────────────────────
+    const activeHTML = Object.values(activeGroups).map(group => {
+      const ref = group.ref;
+      const condChips = isVoca ? [
+        ref.sets     ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);color:var(--text2)">${ref.sets}세트</span>` : '',
+        ref.perSet   ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);color:var(--text2)">1set ${ref.perSet}</span>` : '',
+        ref.memorize ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);color:var(--text2)">암기 ${ref.memorize}</span>` : '',
+        ref.recall   ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);color:var(--text2)">리콜 ${ref.recall}</span>` : '',
+        ref.test     ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);color:var(--text2)">테스트 ${ref.test}점${ref.testType?' · '+ref.testType:''}</span>` : '',
+      ].filter(Boolean).join('') : '';
+
+      const stuRows = group.items.map(({a, stu}) => {
+        let progressHTML = '';
+        if (isVoca) {
+          const total = a.sets || 0;
+          let doneSets = 0;
+          if (total > 0) {
+            const allDates = getStudyDates(a.startDate, total, a.type==='SV' ? (a.studyDays||null) : null);
+            doneSets = allDates.filter(d => d <= today).length;
+          }
+          const pct  = total > 0 ? Math.round(doneSets / total * 100) : 0;
+          const barC = pct >= 70 ? '#2B7FD4' : pct >= 30 ? '#D4820F' : '#B83224';
+          progressHTML = `<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+              <span style="font-size:11px;font-weight:700;color:${TYPE_COL[type]}">${doneSets}/${total}세트</span>
+              <span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;background:${TYPE_PCTBG[type]};color:${TYPE_COL[type]}">${pct}%</span>
+              <div style="width:70px;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+                <div style="height:100%;width:${pct}%;background:${barC};border-radius:3px"></div>
+              </div>
+            </div>`;
+        } else {
+          const stTxt = a.endDate ? `~ ${a.endDate}` : '진행중';
+          progressHTML = `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:${TYPE_PCTBG[type]};color:${TYPE_COL[type]};border:1px solid ${TYPE_BORD[type]}">${stTxt}</span>`;
+        }
+        const dateDiff = a.startDate !== ref.startDate
+          ? `<span style="font-size:10px;color:var(--text3)">${a.startDate} 시작</span>` : '';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 14px 8px 28px;border-bottom:1px solid var(--border);background:${TYPE_BG[type]}">
+            <span style="font-size:13px;font-weight:700;min-width:70px;flex-shrink:0">${stu.name}</span>
+            ${dateDiff}
+            ${progressHTML}
+            <button class="btn btn-ghost btn-sm" style="margin-left:auto;flex-shrink:0;font-size:10px;padding:2px 8px" onclick="openEditAssignModal('${a.id}')">✏ 수정</button>
+          </div>`;
+      }).join('');
+
+      return `<div style="border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px;padding:9px 16px;background:#FAFAF8;border-bottom:1px solid var(--border);flex-wrap:wrap">
+            <span style="font-size:12px;font-weight:800;color:var(--text)">${group.book}</span>
+            ${ref.startDate ? `<span style="font-size:10px;color:var(--text3)">${ref.startDate} 시작</span>` : ''}
+            ${condChips}
+            <span style="font-size:11px;color:var(--text3);margin-left:2px">${group.items.length}명</span>
+          </div>
+          ${stuRows}
+        </div>`;
+    }).join('');
+
+    // ── done 섹션 HTML ────────────────────────────────────
+    let doneSectionHTML = '';
+    if (doneItems.length > 0) {
+      const doneBookRows = Object.values(doneGroups).map(group => {
+        const rows = group.items.map(({a, stu}) =>
+          `<div style="display:flex;align-items:center;gap:10px;padding:7px 14px 7px 28px;border-bottom:1px solid var(--border);opacity:.7;background:#F8F8F6">
+            <span style="font-size:13px;font-weight:700;min-width:70px;flex-shrink:0;color:var(--text2)">${stu.name}</span>
+            <span style="font-size:10px;color:var(--text3)">${a.startDate} 시작</span>
+            ${a.endDate ? `<span style="font-size:10px;color:var(--text3)">~ ${a.endDate}</span>` : ''}
+            <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:4px;background:#EAF4DF;color:#1E5E14;border:1px solid #B8DDA0">완료 ✓</span>
+            <button class="btn btn-ghost btn-sm" style="margin-left:auto;flex-shrink:0;font-size:10px;padding:2px 8px" onclick="openEditAssignModal('${a.id}')">✏ 수정</button>
+          </div>`
+        ).join('');
+        return `<div style="border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 16px;background:#F2F2EE;border-bottom:1px solid var(--border)">
+              <span style="font-size:12px;font-weight:800;color:var(--text3)">${group.book}</span>
+              <span style="font-size:11px;color:var(--text3)">${group.items.length}명</span>
+            </div>
+            ${rows}
+          </div>`;
+      }).join('');
+      doneSectionHTML = `<div>
+          <div onclick="toggleDoneTypeSection('${type}')"
+            style="display:flex;align-items:center;gap:8px;padding:7px 16px;background:var(--bg);border-top:1px solid var(--border);cursor:pointer;user-select:none"
+            onmouseenter="this.style.background='var(--surface)'" onmouseleave="this.style.background='var(--bg)'">
+            <span style="font-size:12px;color:var(--text3);transition:transform .2s;display:inline-block" id="done-type-arrow-${type}">▶</span>
+            <span style="font-size:11px;font-weight:700;color:var(--text3)">완료된 과제 ${doneItems.length}건</span>
+          </div>
+          <div id="done-type-body-${type}" style="display:none">${doneBookRows}</div>
+        </div>`;
+    }
+
+    const clsArg = showClasses.length === 1 ? `'${showClasses[0].id}'` : `''`;
+    return `<div class="card" style="margin-bottom:14px;overflow:hidden">
+        <div class="card-header">
+          <span class="type-chip ${TYPE_CHIPS[type]}">${TYPE_LABELS[type]}</span>
+          <span class="badge b-gray">${activeItems.length}명 진행중</span>
+          ${doneItems.length > 0 ? `<span class="badge b-gray" style="opacity:.65">${doneItems.length}건 완료</span>` : ''}
+          <button class="btn btn-success btn-sm" style="margin-left:auto" onclick="openAddAssignModal(${clsArg})">＋ 과제 추가</button>
+        </div>
+        ${activeItems.length === 0 ? `<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px">진행중인 과제가 없습니다.</div>` : activeHTML}
+        ${doneSectionHTML}
+      </div>`;
+  }).join('');
+}
+
+// 유형별 보기 완료 섹션 토글
+function toggleDoneTypeSection(type) {
+  const body  = document.getElementById('done-type-body-'  + type);
+  const arrow = document.getElementById('done-type-arrow-' + type);
+  if (!body) return;
+  const willOpen = body.style.display === 'none';
+  body.style.display = willOpen ? 'block' : 'none';
+  if (arrow) arrow.style.transform = willOpen ? 'rotate(90deg)' : 'rotate(0deg)';
 }
 
 // 학생 아코디언 토글
@@ -2775,9 +2955,13 @@ function renderStatusPage() {
   // ── 셀 렌더 헬퍼 ─────────────────────────────────────────
 
   // 보카 셀: 진행중인 과제 중 가장 최근 것
-  function vocaStatus(assigns, type) {
+  function vocaStatus(assigns, type, isEven) {
+    const bgOdd  = type==='SV' ? '#FFFCF8' : '#F5F9FF';
+    const bgEven = type==='SV' ? '#F5EEE5' : '#E8EFF8';
+    const bg = isEven ? bgEven : bgOdd;
+
     const list = assigns.filter(a => a.type === type);
-    if (list.length === 0) return `<td class="sc-empty">—</td>`;
+    if (list.length === 0) return `<td style="background:${bg};padding:12px 14px;text-align:center;color:var(--text3);font-size:12px;vertical-align:middle;border-left:1px solid var(--border)">—</td>`;
 
     // 오늘 기준 진행중인 과제 (startDate <= today, 마지막 학습일 >= today)
     const active = list.find(a => {
@@ -2788,7 +2972,7 @@ function renderStatusPage() {
 
     // 진행중 과제 없으면 가장 최근 완료된 것
     const target = active || list.slice().sort((a,b)=>b.startDate.localeCompare(a.startDate))[0];
-    if (!target) return `<td class="sc-empty">—</td>`;
+    if (!target) return `<td style="background:${bg};padding:12px 14px;text-align:center;color:var(--text3);font-size:12px;vertical-align:middle;border-left:1px solid var(--border)">—</td>`;
 
     const isDone = !active;
     const total  = target.sets || 0;
@@ -2802,32 +2986,34 @@ function renderStatusPage() {
       doneSets = total;
     }
 
-    const pct      = total > 0 ? Math.round(doneSets / total * 100) : 0;
-    const barColor = isDone ? '#3D9A1A' : (pct >= 70 ? '#2B7FD4' : pct >= 30 ? '#D4820F' : '#B83224');
-    const bg       = type==='SV' ? '#FFF8F0' : '#EBF2FC';
-    const txtColor = type==='SV' ? '#A84E00' : '#1055A8';
-
-    const progressBar = `
-      <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden">
-        <div style="height:100%;width:${pct}%;background:${barColor};border-radius:2px;transition:width .3s"></div>
-      </div>`;
+    const pct         = total > 0 ? Math.round(doneSets / total * 100) : 0;
+    const barColor    = isDone ? '#3D9A1A' : (pct >= 70 ? '#2B7FD4' : pct >= 30 ? '#D4820F' : '#B83224');
+    const txtColor    = isDone ? '#1E5E14' : (type==='SV' ? '#A84E00' : '#1055A8');
+    const pctBadgeBg  = isDone ? '#EAF4DF' : (type==='SV' ? '#FFF3E8' : '#E8F1FF');
+    const pctBadgeCol = isDone ? '#1E5E14' : (type==='SV' ? '#A84E00' : '#1055A8');
 
     return `
-      <td style="background:${bg};padding:8px 10px;vertical-align:top">
-        <div style="font-size:12px;font-weight:800;color:var(--text);white-space:nowrap;margin-bottom:2px">${target.book}</div>
-        <div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap">
-          <span style="font-size:11px;font-weight:700;color:${txtColor};white-space:nowrap">${doneSets}/${total}세트</span>
-          <span style="font-size:10px;color:var(--text3)">${pct}%</span>
-          ${isDone ? `<span style="font-size:10px;font-weight:700;color:var(--green);background:var(--green-bg);padding:1px 5px;border-radius:3px">완료✓</span>` : ''}
+      <td style="background:${bg};padding:12px 14px;vertical-align:top;border-left:1px solid var(--border)">
+        <div style="font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;margin-bottom:5px">${target.book}</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;margin-bottom:5px">
+          <span style="font-size:12px;font-weight:700;color:${txtColor};white-space:nowrap">${doneSets}/${total}세트</span>
+          <span style="font-size:11px;font-weight:700;padding:1px 6px;border-radius:3px;background:${pctBadgeBg};color:${pctBadgeCol}">${isDone ? '완료' : pct+'%'}</span>
         </div>
-        ${isDone ? '' : progressBar}
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .3s"></div>
+        </div>
       </td>`;
   }
 
   // 교재 셀: 진행중인 과제 목록 (여러 개 가능)
-  function textbookStatus(assigns, type) {
+  function textbookStatus(assigns, type, isEven) {
+    const bgOdd  = type==='MAIN' ? '#F5FDF0' : '#FFF8FB';
+    const bgEven = type==='MAIN' ? '#EAF4E2' : '#F5ECF2';
+    const bg = isEven ? bgEven : bgOdd;
+    const borderL = type==='MAIN' ? '2px solid var(--border2)' : '1px solid var(--border)';
+
     const list = assigns.filter(a => a.type === type);
-    if (list.length === 0) return `<td class="sc-empty">—</td>`;
+    if (list.length === 0) return `<td style="background:${bg};padding:12px 14px;text-align:center;color:var(--text3);font-size:12px;vertical-align:middle;border-left:${borderL}">—</td>`;
 
     // 진행중: startDate <= 오늘, endDate 없거나 endDate >= 오늘
     const active = list.filter(a => {
@@ -2841,27 +3027,26 @@ function renderStatusPage() {
     const targets = active.length > 0 ? active
       : [list.slice().sort((a,b) => (b.endDate||'').localeCompare(a.endDate||''))[0]].filter(Boolean);
 
-    if (targets.length === 0) return `<td class="sc-empty">—</td>`;
+    if (targets.length === 0) return `<td style="background:${bg};padding:12px 14px;text-align:center;color:var(--text3);font-size:12px;vertical-align:middle;border-left:${borderL}">—</td>`;
 
-    const bg      = type==='MAIN' ? '#F0FFF0' : '#FFF0F5';
-    const txtCol  = type==='MAIN' ? '#1B5E20' : '#7A0A40';
-    const isDone  = active.length === 0;
+    const txtCol = type==='MAIN' ? '#1B5E20' : '#7A0A40';
 
-    const items = targets.map(a => {
-      const status = a.endDate && a.endDate < today
-        ? `<span style="font-size:10px;font-weight:700;color:var(--green);background:var(--green-bg);padding:1px 5px;border-radius:3px">완료✓</span>`
-        : `<span style="font-size:10px;font-weight:700;color:${txtCol};background:${bg};padding:1px 5px;border-radius:3px;border:1px solid ${type==='MAIN'?'#C0DD97':'#F5C4C0'}">진행중</span>`;
+    const items = targets.map((a, idx) => {
+      const done = a.endDate && a.endDate < today;
+      const status = done
+        ? `<span style="font-size:10px;font-weight:700;color:#1E5E14;background:#EAF4DF;padding:2px 7px;border-radius:4px;border:1px solid #B8DDA0">완료 ✓</span>`
+        : `<span style="font-size:10px;font-weight:700;color:${txtCol};background:${type==='MAIN'?'#EAF4DF':'#FFE8F2'};padding:2px 7px;border-radius:4px;border:1px solid ${type==='MAIN'?'#C0DD97':'#F5C4D0'}">진행중</span>`;
       return `
-        <div style="margin-bottom:${targets.length>1?'5px':'0'}">
-          <div style="font-size:12px;font-weight:800;color:var(--text);white-space:nowrap;margin-bottom:2px">${a.book}</div>
-          <div style="display:flex;align-items:center;gap:4px">
+        <div style="margin-bottom:${idx < targets.length-1 ? '8px' : '0'}">
+          <div style="font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;margin-bottom:4px">${a.book}</div>
+          <div style="display:flex;align-items:center;gap:5px">
             <span style="font-size:10px;color:var(--text3)">${a.startDate}</span>
             ${status}
           </div>
         </div>`;
     }).join('');
 
-    return `<td style="background:${bg};padding:8px 10px;vertical-align:top">${items}</td>`;
+    return `<td style="background:${bg};padding:12px 14px;vertical-align:top;border-left:${borderL}">${items}</td>`;
   }
 
   // ── 테이블 생성 ───────────────────────────────────────────
@@ -2905,36 +3090,38 @@ function renderStatusPage() {
 
   const tbodyHTML = students.map((stu, si) => {
     const assigns   = DB.assignments.filter(a=>a.studentId===stu.id);
-    const rowBg     = si % 2 === 0 ? 'var(--surface)' : 'var(--bg)';
+    const isEven    = si % 2 !== 0;
+    const rowBg     = isEven ? '#F2F4F8' : '#FFFFFF';
     const memoVal   = (DB.stuMemos && DB.stuMemos[stu.id]) || '';
     // XSS 방지: 메모 내용을 attribute value에 직접 넣을 때 따옴표 이스케이프
     const memoSafe  = memoVal.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     return `
-      <tr style="background:${rowBg}">
+      <tr style="background:${rowBg};border-bottom:1.5px solid var(--border)">
         <td style="position:sticky;left:0;z-index:2;background:${rowBg};
-          border-right:1px solid var(--border2);border-bottom:1px solid var(--border);
-          font-size:13px;font-weight:700;color:var(--text);padding:8px 12px;
+          border-right:1px solid var(--border2);
+          font-size:13px;font-weight:700;color:var(--text);padding:12px 12px;
           white-space:nowrap;vertical-align:middle">
           ${stu.name}
         </td>
         <td style="position:sticky;left:90px;z-index:2;background:${rowBg};
-          border-right:2px solid var(--border2);border-bottom:1px solid var(--border);
-          padding:6px 8px;vertical-align:middle;min-width:200px">
+          border-right:2px solid var(--border2);
+          padding:8px 8px;vertical-align:middle;min-width:200px">
           <textarea
             placeholder="특이사항 입력..."
+            class="sc-memo-textarea"
             style="width:100%;min-height:48px;max-height:120px;resize:vertical;
               border:1px solid transparent;border-radius:5px;padding:4px 6px;
-              font-size:11px;font-family:inherit;color:var(--text);
+              font-size:13.2px;font-family:inherit;color:var(--text);
               background:transparent;outline:none;line-height:1.5;box-sizing:border-box"
             onfocus="this.style.background='var(--surface)';this.style.borderColor='var(--blue-mid)'"
             onblur="this.style.background='transparent';this.style.borderColor='transparent';saveStuMemo('${stu.id}',this.value)"
           >${memoSafe}</textarea>
         </td>
-        ${vocaStatus(assigns,'SV')}
-        ${vocaStatus(assigns,'HV')}
-        ${textbookStatus(assigns,'MAIN')}
-        ${textbookStatus(assigns,'SUB')}
+        ${vocaStatus(assigns,'SV',isEven)}
+        ${vocaStatus(assigns,'HV',isEven)}
+        ${textbookStatus(assigns,'MAIN',isEven)}
+        ${textbookStatus(assigns,'SUB',isEven)}
       </tr>`;
   }).join('');
 
@@ -2977,6 +3164,7 @@ function renderStatusPage() {
       td.sc-empty{text-align:center;color:var(--border2);font-size:16px;
         padding:8px 14px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);
         vertical-align:middle;background:var(--bg);min-width:160px}
+      textarea.sc-memo-textarea::placeholder{color:#1A5FAD;font-style:italic;font-weight:600}
     </style>`;
 }
 
@@ -4305,8 +4493,18 @@ function openEditAssignModal(assignId) {
   }
 }
 
+// ── 일괄 수정 확인 취소 (경고 닫고 버튼 복원) ────────────
+function cancelBulkConfirm() {
+  const warn = document.getElementById('assign-overlap-warn');
+  if (warn) warn.style.display = 'none';
+  const footer = document.getElementById('assign-modal-footer');
+  if (footer) footer.innerHTML = `
+    <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-add-assign');_editingAssignId=null;">취소</button>
+    <button class="btn btn-primary btn-sm" onclick="saveEditAssign()">💾 수정 저장</button>`;
+}
+
 // ── 과제 수정 저장 ────────────────────────────────────────
-function saveEditAssign() {
+function saveEditAssign(bulkConfirmed) {
   if (!_editingAssignId) return;
   const a = DB.assignments.find(x => x.id === _editingAssignId);
   if (!a) { toast('수정할 과제를 찾을 수 없습니다.', 'error'); closeModal('modal-add-assign'); return; }
@@ -4393,6 +4591,31 @@ function saveEditAssign() {
       `반별학습이력의 날짜가 자동으로 재계산됩니다.\n\n계속하시겠습니까?`
     );
     if (!warned) return;
+  }
+
+  // ── bulk 확인 단계: 체크된 학생이 있고 아직 확인 전이면 경고 표시 ──
+  const checkedBulkPre = [...document.querySelectorAll('.bulk-edit-chk:checked')];
+  if (checkedBulkPre.length > 0 && !bulkConfirmed) {
+    const nameList = checkedBulkPre.map(chk => {
+      const ba   = DB.assignments.find(x => x.id === chk.dataset.assignId);
+      const bstu = ba ? getStudentById(ba.studentId) : null;
+      return bstu?.name || '?';
+    }).filter(Boolean);
+
+    const warn = document.getElementById('assign-overlap-warn');
+    const msg  = document.getElementById('assign-overlap-msg');
+    if (warn && msg) {
+      warn.style.cssText = 'display:block;margin-top:10px;padding:12px 14px;background:#FEF5E7;border:1px solid #FAC775;border-radius:8px;font-size:12px;color:#7A4A00;line-height:1.8';
+      msg.innerHTML =
+        `⚠️ <strong>다음 ${nameList.length}명의 과제도 함께 수정됩니다</strong><br>` +
+        `<span style="color:#5A4000">${nameList.join(', ')}</span><br>` +
+        `계속 진행하시겠습니까?`;
+    }
+    const footer = document.getElementById('assign-modal-footer');
+    if (footer) footer.innerHTML = `
+      <button class="btn btn-ghost btn-sm" onclick="cancelBulkConfirm()">← 다시 선택</button>
+      <button class="btn btn-danger btn-sm" onclick="saveEditAssign(true)">✅ 확인 후 저장</button>`;
+    return;
   }
 
   // 과제 객체 업데이트
