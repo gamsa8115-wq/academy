@@ -214,6 +214,28 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .history-wrap{overflow:auto;max-height:calc(100vh - 260px);border-radius:0 0 var(--r) var(--r)}
 .hf-btn{font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;cursor:pointer;transition:opacity .15s;font-family:inherit}
 .hf-btn.hf-off{opacity:.35;text-decoration:line-through}
+/* 학원 일정 달력 */
+.ep-test{background:#FAECE7;color:#993C1D}
+.ep-repeat{background:#E6F1FB;color:#185FA5}
+.ep-event{background:#EAF3DE;color:#3B6D11}
+.ep-memo{background:#F1EFE8;color:#5F5E5A}
+.cal-dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:0.5px solid var(--border)}
+.cal-dow>div{text-align:center;font-size:10px;font-weight:700;padding:5px 0;color:var(--text3)}
+.cal-dow>div:first-child{color:#A32D2D}
+.cal-dow>div:last-child{color:#185FA5}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal-day{border-right:0.5px solid var(--border);border-bottom:0.5px solid var(--border);min-height:60px;padding:4px;cursor:default}
+.cal-day:nth-child(7n){border-right:none}
+.cal-day.cal-other{background:var(--bg)}
+.cal-day.cal-today .cal-dn{background:#185FA5;color:#E6F1FB;border-radius:50%}
+.cal-dn{font-size:11px;font-weight:500;color:var(--text);width:20px;height:20px;display:flex;align-items:center;justify-content:center;margin-bottom:2px}
+.cal-day.cal-other .cal-dn{color:var(--text3)}
+.cal-day.cal-sun .cal-dn{color:#A32D2D}
+.cal-day.cal-sat .cal-dn{color:#185FA5}
+.cal-pill{font-size:9px;font-weight:500;padding:1px 4px;border-radius:2px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-leg{display:flex;gap:10px;padding:8px 14px;border-top:0.5px solid var(--border);flex-wrap:wrap}
+.ev-leg-item{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text2)}
+.ev-leg-dot{width:7px;height:7px;border-radius:2px}
 .history-table{border-collapse:separate;border-spacing:0;white-space:nowrap;font-size:12px}
 /* 공통 헤더 셀 */
 .history-table th{
@@ -338,9 +360,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 /* ── 스탯 카드 ── */
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)}
-.stat-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
-.stat-value{font-size:26px;font-weight:800;color:var(--text);line-height:1;margin-bottom:3px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:8px 14px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px}
+.stat-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.stat-value{font-size:20px;font-weight:800;color:var(--text);line-height:1}
+.stat-sub{font-size:11px;color:var(--text3);white-space:nowrap}
 .stat-sub{font-size:11px;color:var(--text3)}
 
 /* ── 반 색상 ── */
@@ -453,8 +476,41 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 ══════════════════════════════════════════════ -->
 
 <!-- 반 추가 모달 -->
-<div class="modal-overlay" id="modal-add-class" onclick="closeModalOutside(event,'modal-add-class')">
+<!-- 학원 일정 추가 모달 -->
+<div class="modal-overlay" id="modal-add-event" onclick="closeModalOutside(event,'modal-add-event')">
   <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">학원 일정 추가</span>
+      <button class="modal-close" onclick="closeModal('modal-add-event')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">날짜</label>
+        <input class="form-input" type="date" id="event-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">분류</label>
+        <select class="form-select" id="event-type">
+          <option value="test">테스트</option>
+          <option value="repeat">정기일정</option>
+          <option value="event">행사</option>
+          <option value="memo">메모</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">내용</label>
+        <input class="form-input" type="text" id="event-text" placeholder="예: 전학년 과거분사 테스트"
+          onkeydown="if(event.key==='Enter') saveAcademyEventModal()">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-add-event')">취소</button>
+      <button class="btn btn-success btn-sm" onclick="saveAcademyEventModal()">💾 저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-class" onclick="closeModalOutside(event,'modal-add-class')">  <div class="modal">
     <div class="modal-header">
       <span class="modal-title">반 추가</span>
       <button class="modal-close" onclick="closeModal('modal-add-class')">✕</button>
@@ -812,6 +868,7 @@ function getDefaultData() {
     stuMemos:    {},
     classMemos:  {},
     attendance:  {},
+    events:      [], // 학원 일정
   };
 }
 
@@ -838,6 +895,7 @@ function sanitizeDB(parsed) {
     stuMemos:    toObj(parsed.stuMemos),
     classMemos:  toObj(parsed.classMemos),
     attendance:  toObj(parsed.attendance),
+    events:      toArray(parsed.events),
   };
 }
 
@@ -926,6 +984,38 @@ function saveClassesFb() {
 function saveOffDaysFb() {
   _fbUpdate({ [`${FB_PATH}/offDays`]: DB.offDays.length > 0 ? DB.offDays : null });
 }
+function saveEventsFb() {
+  _fbUpdate({ [`${FB_PATH}/events`]: DB.events.length > 0 ? DB.events : null });
+}
+
+// ── 학원 일정 공통 함수 ──────────────────────────────────
+const TYPE_EVENT_LABELS = {test:'테스트', repeat:'정기일정', event:'행사', memo:'메모'};
+const TYPE_EVENT_CHIPS  = {test:'ep-test', repeat:'ep-repeat', event:'ep-event', memo:'ep-memo'};
+
+function addAcademyEvent(dateStr, type, text) {
+  if (!dateStr || !text.trim()) { toast('날짜와 내용을 입력하세요.', 'error'); return false; }
+  if (!DB.events) DB.events = [];
+  DB.events.push({ id: genId(), date: dateStr, type: type||'memo', text: text.trim(), createdAt: new Date().toISOString() });
+  DB.events.sort((a,b) => a.date.localeCompare(b.date));
+  saveEventsFb();
+  toast('일정이 추가되었습니다.', 'success');
+  return true;
+}
+
+function deleteAcademyEvent(eventId) {
+  if (!confirm('이 일정을 삭제하시겠습니까?')) return;
+  DB.events = (DB.events || []).filter(e => e.id !== eventId);
+  saveEventsFb();
+  toast('삭제되었습니다.', 'warning');
+  showPage(currentPage);
+}
+
+// 대시보드 과거 일정 토글
+let _showPastEvents = false;
+function togglePastEvents() {
+  _showPastEvents = !_showPastEvents;
+  showPage('dashboard');
+}
 
 // 9. 반/학생 삭제 — 여러 경로 원자적 삭제 (하나라도 실패하면 전체 실패)
 function saveDeleteClassFb(stuIds, classId) {
@@ -1010,7 +1100,7 @@ function connectFirebaseListeners() {
   Object.values(_fbListeners).forEach(off => off && off());
   _fbListeners = {};
 
-  const paths = ['classes','students','assignments','offDays','stuMemos','classMemos','attendance'];
+  const paths = ['classes','students','assignments','offDays','stuMemos','classMemos','attendance','events'];
 
   paths.forEach(path => {
     const ref = _fbDB.ref(`${FB_PATH}/${path}`);
@@ -1028,6 +1118,7 @@ function connectFirebaseListeners() {
       if (path === 'stuMemos')    DB.stuMemos    = toObj(val);
       if (path === 'classMemos')  DB.classMemos  = toObj(val);
       if (path === 'attendance')  DB.attendance  = toObj(val);
+      if (path === 'events')      DB.events      = toArray(val);
 
       saveDataLocal();
 
@@ -1523,27 +1614,28 @@ function renderDashboard() {
       <div class="stat-card">
         <div class="stat-label">총 반 수</div>
         <div class="stat-value">${totalClasses}</div>
-        <div class="stat-sub">개 반 운영 중</div>
+        <div class="stat-sub">개 반</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">총 학생</div>
         <div class="stat-value">${totalStudents}</div>
-        <div class="stat-sub">명 등록됨</div>
+        <div class="stat-sub">명</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">종료 임박</div>
         <div class="stat-value" style="color:${urgentCount>0?'var(--red)':alertCount>0?'var(--amber)':'var(--green)'}">
           ${urgentCount > 0 ? urgentCount : alertCount}
         </div>
-        <div class="stat-sub">${urgentCount>0?'오늘·내일 종료':alertCount>0?'3일 이내':'없음'}</div>
+        <div class="stat-sub">${urgentCount>0?'오늘·내일':alertCount>0?'3일 이내':'없음'}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">총 과제</div>
         <div class="stat-value">${totalAssignments}</div>
-        <div class="stat-sub">건 설정됨</div>
+        <div class="stat-sub">건</div>
       </div>
     </div>
     ${alertHTML}
+    ${renderEventCalendarCard()}
     <div class="card">
       <div class="card-header">
         <span class="card-title">반 현황</span>
@@ -1551,6 +1643,157 @@ function renderDashboard() {
       </div>
       <div class="card-body">${classCards}</div>
     </div>`;
+}
+
+// ── 학원 일정 달력 카드 렌더 ─────────────────────────────
+function renderEventCalendarCard() {
+  const today = formatDate(new Date());
+  const events = DB.events || [];
+
+  // 달력 기준 월 (전역 상태로 관리)
+  if (!window._calYear || !window._calMonth) {
+    const now = new Date();
+    window._calYear  = now.getFullYear();
+    window._calMonth = now.getMonth();
+  }
+  const y = window._calYear, m = window._calMonth;
+
+  // 오늘 이후/이전 일정 분리
+  const upcomingEvents = events.filter(e => e.date >= today);
+  const pastEvents     = events.filter(e => e.date <  today).sort((a,b)=>b.date.localeCompare(a.date));
+
+  // 달력 생성
+  const first    = new Date(y, m, 1).getDay();
+  const lastDay  = new Date(y, m+1, 0).getDate();
+  const prevLast = new Date(y, m, 0).getDate();
+  function pad(n){return String(n).padStart(2,'0')}
+  function fmtD(yy,mm,dd){return `${yy}-${pad(mm+1)}-${pad(dd)}`}
+
+  let cells = [];
+  for(let i=first-1;i>=0;i--) cells.push({d:prevLast-i,cur:false,y:m===0?y-1:y,m:m===0?11:m-1});
+  for(let d=1;d<=lastDay;d++) cells.push({d,cur:true,y,m});
+  const rem=42-cells.length;
+  for(let d=1;d<=rem;d++) cells.push({d,cur:false,y:m===11?y+1:y,m:m===11?0:m+1});
+
+  const EP={test:'ep-test',repeat:'ep-repeat',event:'ep-event',memo:'ep-memo'};
+  const gridHTML = cells.map((cell,i)=>{
+    const dow=i%7;
+    const ds=fmtD(cell.y,cell.m,cell.d);
+    const dayEvs=events.filter(e=>e.date===ds);
+    const isToday=cell.cur && ds===today;
+    const cls=['cal-day',!cell.cur?'cal-other':'',isToday?'cal-today':'',dow===0?'cal-sun':dow===6?'cal-sat':''].filter(Boolean).join(' ');
+    let inner=`<div class="cal-dn">${cell.d}</div>`;
+    dayEvs.slice(0,2).forEach(ev=>{
+      inner+=`<div class="cal-pill ${EP[ev.type]||'ep-memo'}">${ev.text}</div>`;
+    });
+    if(dayEvs.length>2) inner+=`<div style="font-size:9px;color:var(--text3)">+${dayEvs.length-2}</div>`;
+    return `<div class="${cls}">${inner}</div>`;
+  }).join('');
+
+  // 우측 이달의 일정 목록
+  const monthStart = `${y}-${pad(m+1)}-01`;
+  const monthEnd   = `${y}-${pad(m+1)}-${pad(lastDay)}`;
+  const monthEvs   = events.filter(e=>e.date>=monthStart && e.date<=monthEnd).sort((a,b)=>a.date.localeCompare(b.date));
+  const listHTML   = monthEvs.length===0
+    ? `<div style="font-size:12px;color:var(--text3);padding:8px 0">이달 일정 없음</div>`
+    : monthEvs.map(ev=>{
+        const dt=new Date(ev.date+'T00:00:00');
+        const dl=`${dt.getMonth()+1}/${dt.getDate()}(${['일','월','화','수','목','금','토'][dt.getDay()]})`;
+        return `<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border)">
+          <span style="font-size:11px;font-weight:500;color:var(--text2);min-width:52px">${dl}</span>
+          <span class="cal-pill ${EP[ev.type]||'ep-memo'}" style="font-size:10px;padding:1px 5px">${TYPE_EVENT_LABELS[ev.type]||ev.type}</span>
+          <span style="font-size:11px;color:var(--text);flex:1">${ev.text}</span>
+          <button class="btn btn-ghost btn-sm" style="padding:1px 6px;font-size:10px" onclick="deleteAcademyEvent('${ev.id}')">삭제</button>
+        </div>`;
+      }).join('');
+
+  // 과거 일정 섹션
+  const pastHTML = pastEvents.length===0 ? '' : `
+    <div style="margin-top:8px">
+      <button onclick="togglePastEvents()" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0">
+        ${_showPastEvents ? '▼' : '▶'} 지난 일정 ${pastEvents.length}건
+      </button>
+      ${_showPastEvents ? `<div style="margin-top:6px">${pastEvents.slice(0,10).map(ev=>{
+        const dt=new Date(ev.date+'T00:00:00');
+        const dl=`${dt.getMonth()+1}/${dt.getDate()}(${['일','월','화','수','목','금','토'][dt.getDay()]})`;
+        return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:0.5px solid var(--border);opacity:.6">
+          <span style="font-size:11px;font-weight:500;color:var(--text2);min-width:52px">${dl}</span>
+          <span class="cal-pill ${EP[ev.type]||'ep-memo'}" style="font-size:10px;padding:1px 5px">${TYPE_EVENT_LABELS[ev.type]||ev.type}</span>
+          <span style="font-size:11px;color:var(--text);flex:1">${ev.text}</span>
+          <button class="btn btn-ghost btn-sm" style="padding:1px 6px;font-size:10px" onclick="deleteAcademyEvent('${ev.id}')">삭제</button>
+        </div>`;
+      }).join('')}</div>` : ''}
+    </div>`;
+
+  return `
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <span class="card-title"><i class="ti ti-calendar" style="font-size:14px;margin-right:4px" aria-hidden="true"></i>학원 일정</span>
+        <button class="btn btn-primary btn-sm" onclick="openAddEventModal()">＋ 일정 추가</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 200px">
+        <div style="border-right:0.5px solid var(--border)">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:0.5px solid var(--border)">
+            <button class="btn btn-ghost btn-sm" style="padding:2px 8px" onclick="calNav(-1)">◀</button>
+            <span style="font-size:12px;font-weight:700;color:var(--text)">${y}년 ${m+1}월</span>
+            <button class="btn btn-ghost btn-sm" style="padding:2px 8px" onclick="calNav(1)">▶</button>
+          </div>
+          <div class="cal-dow">
+            <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+          </div>
+          <div class="cal-grid">${gridHTML}</div>
+        </div>
+        <div style="padding:10px 12px;overflow-y:auto;max-height:280px">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">${m+1}월 일정</div>
+          ${listHTML}
+          ${pastHTML}
+        </div>
+      </div>
+      <div class="ev-leg">
+        <div class="ev-leg-item"><div class="ev-leg-dot" style="background:#F0997B"></div>테스트</div>
+        <div class="ev-leg-item"><div class="ev-leg-dot" style="background:#85B7EB"></div>정기일정</div>
+        <div class="ev-leg-item"><div class="ev-leg-dot" style="background:#97C459"></div>행사</div>
+        <div class="ev-leg-item"><div class="ev-leg-dot" style="background:#B4B2A9"></div>메모</div>
+      </div>
+    </div>`;
+}
+
+function calNav(dir) {
+  if (!window._calYear) { const n=new Date(); window._calYear=n.getFullYear(); window._calMonth=n.getMonth(); }
+  window._calMonth += dir;
+  if (window._calMonth > 11) { window._calMonth=0; window._calYear++; }
+  if (window._calMonth < 0)  { window._calMonth=11; window._calYear--; }
+  showPage(currentPage);
+}
+
+function openAddEventModal() {
+  const today = formatDate(new Date());
+  const modal = document.getElementById('modal-add-event');
+  if (modal) {
+    document.getElementById('event-date').value = today;
+    document.getElementById('event-type').value = 'memo';
+    document.getElementById('event-text').value = '';
+    openModal('modal-add-event');
+  }
+}
+
+function saveAcademyEventModal() {
+  const date = document.getElementById('event-date').value;
+  const type = document.getElementById('event-type').value;
+  const text = document.getElementById('event-text').value;
+  if (addAcademyEvent(date, type, text)) {
+    closeModal('modal-add-event');
+    showPage(currentPage);
+  }
+}
+
+function addEventFromSettings() {
+  const date = document.getElementById('settings-event-date')?.value;
+  const type = document.getElementById('settings-event-type')?.value || 'memo';
+  const text = document.getElementById('settings-event-text')?.value || '';
+  if (addAcademyEvent(date, type, text)) {
+    showPage(currentPage);
+  }
 }
 
 // ══════════════════════════════════════════════════════════
@@ -3209,6 +3452,53 @@ function renderSettingsPage() {
     <div class="page-header">
       <div class="page-title">학원 설정</div>
       <div class="page-sub">추가 휴무일을 등록하면 모든 학습 이력의 날짜 계산에 즉시 반영됩니다.</div>
+    </div>
+
+    <!-- 학원 일정 관리 -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <span class="card-title"><i class="ti ti-calendar" style="font-size:14px;margin-right:4px" aria-hidden="true"></i>학원 일정 관리</span>
+        <span class="badge b-blue">${(DB.events||[]).length}건</span>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end">
+          <div>
+            <label class="form-label">날짜</label>
+            <input class="form-input" type="date" id="settings-event-date" style="width:160px">
+          </div>
+          <div>
+            <label class="form-label">분류</label>
+            <select class="form-select" id="settings-event-type" style="width:110px">
+              <option value="test">테스트</option>
+              <option value="repeat">정기일정</option>
+              <option value="event">행사</option>
+              <option value="memo">메모</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:160px">
+            <label class="form-label">내용</label>
+            <input class="form-input" id="settings-event-text" placeholder="일정 내용 입력..."
+              onkeydown="if(event.key==='Enter') addEventFromSettings()">
+          </div>
+          <button class="btn btn-primary" onclick="addEventFromSettings()">＋ 추가</button>
+        </div>
+        ${(DB.events||[]).length === 0
+          ? `<div style="color:var(--text3);font-size:13px;text-align:center;padding:16px">등록된 일정이 없습니다.</div>`
+          : `<div>${(DB.events||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).map(ev=>{
+              const dt=new Date(ev.date+'T00:00:00');
+              const dl=`${dt.getFullYear()}.${dt.getMonth()+1}.${dt.getDate()}(${['일','월','화','수','목','금','토'][dt.getDay()]})`;
+              const EP={test:'ep-test',repeat:'ep-repeat',event:'ep-event',memo:'ep-memo'};
+              const isPast = ev.date < formatDate(new Date());
+              return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);${isPast?'opacity:.5':''}">
+                <span style="font-size:11px;font-weight:500;color:var(--text2);min-width:100px">${dl}</span>
+                <span class="cal-pill ${EP[ev.type]||'ep-memo'}" style="font-size:10px;padding:2px 6px">${TYPE_EVENT_LABELS[ev.type]||ev.type}</span>
+                <span style="font-size:13px;color:var(--text);flex:1">${ev.text}</span>
+                ${isPast?'<span style="font-size:10px;color:var(--text3)">지난 일정</span>':''}
+                <button class="btn btn-danger btn-sm" style="padding:2px 8px;font-size:11px" onclick="deleteAcademyEvent('${ev.id}')">삭제</button>
+              </div>`;
+            }).join('')}</div>`
+        }
+      </div>
     </div>
 
     <!-- 추가 휴무일 등록 -->
