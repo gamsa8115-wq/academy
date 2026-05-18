@@ -637,6 +637,18 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
         <span style="font-size:11px;color:var(--text3);margin-left:6px">(학생·유형 변경 불가 — 변경 시 삭제 후 재등록)</span>
       </div>
 
+      <!-- 수정 모드: 일괄 수정 대상 학생 목록 -->
+      <div id="assign-bulk-section" style="display:none;margin-bottom:14px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:700;color:var(--text)">같은 반 · 같은 과제 학생</span>
+          <span style="font-size:11px;color:var(--text3)">함께 수정할 학생을 선택하세요</span>
+          <label style="margin-left:auto;display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer">
+            <input type="checkbox" id="bulk-select-all" onchange="toggleBulkSelectAll(this.checked)"> 전체선택
+          </label>
+        </div>
+        <div id="assign-bulk-list"></div>
+      </div>
+
       <!-- 추가 모드: 반/학생 선택 -->
       <div id="assign-add-fields">
         <div class="form-group">
@@ -2646,6 +2658,13 @@ function collapseAllInClass(clsId) {
   });
 }
 
+// 일괄 수정 전체선택 토글
+function toggleBulkSelectAll(checked) {
+  document.querySelectorAll('#assign-bulk-list .bulk-edit-chk').forEach(chk => {
+    chk.checked = checked;
+  });
+}
+
 // 완료 과제 섹션 토글 (오류2,5,6 해결)
 function toggleDoneSection(stuId) {
   const body  = document.getElementById('done-body-'  + stuId);
@@ -3838,6 +3857,7 @@ function openAddAssignModal(classId, studentId) {
   _editingAssignId = null;
   document.getElementById('assign-modal-title').textContent = '과제 설정';
   document.getElementById('assign-edit-info').style.display = 'none';
+  document.getElementById('assign-bulk-section').style.display = 'none';
   document.getElementById('assign-add-fields').style.display = '';
   document.getElementById('assign-type-radio').style.display = 'flex';
   document.getElementById('assign-type-readonly').style.display = 'none';
@@ -4235,6 +4255,54 @@ function openEditAssignModal(assignId) {
   if (warn) warn.style.display = 'none';
 
   openModal('modal-add-assign');
+
+  // ── 일괄 수정 대상 학생 목록 구성 ──────────────────────────
+  const bulkSection   = document.getElementById('assign-bulk-section');
+  const bulkList      = document.getElementById('assign-bulk-list');
+  const bulkSelectAll = document.getElementById('bulk-select-all');
+
+  // 같은 반 + 같은 type + 같은 book 과제를 가진 다른 학생 탐색
+  const sameClassStudents = DB.students.filter(s => s.classId === a.classId && s.id !== a.studentId);
+  const bulkCandidates = [];
+  for (const s of sameClassStudents) {
+    const match = DB.assignments.find(x =>
+      x.studentId === s.id && x.type === a.type && x.book === a.book
+    );
+    if (match) bulkCandidates.push({ stu: s, assign: match });
+  }
+
+  if (bulkCandidates.length === 0) {
+    bulkSection.style.display = 'none';
+  } else {
+    const isVocaBulk = a.type === 'SV' || a.type === 'HV';
+    bulkList.innerHTML = bulkCandidates.map(({ stu, assign: ba }) => {
+      const done = isAssignDone(ba);
+      const condParts = [];
+      if (isVocaBulk) {
+        if (ba.sets)      condParts.push(`${ba.sets}세트`);
+        if (ba.startDate) condParts.push(`${ba.startDate} 시작`);
+      } else {
+        if (ba.startDate) condParts.push(`${ba.startDate} 시작`);
+        if (ba.endDate)   condParts.push(`~ ${ba.endDate}`);
+      }
+      const condText = condParts.length ? condParts.join(' · ') : '조건 없음';
+      return `
+        <label style="display:flex;align-items:center;gap:8px;padding:5px 2px;cursor:pointer;font-size:12px">
+          <input type="checkbox" class="bulk-edit-chk" data-assign-id="${ba.id}" ${done ? '' : 'checked'}>
+          <span style="font-weight:700;color:var(--text);min-width:60px">${stu.name}</span>
+          <span style="color:var(--text3)">${condText}</span>
+          ${done ? '<span style="font-size:10px;background:var(--border);color:var(--text3);padding:1px 6px;border-radius:4px;flex-shrink:0">완료</span>' : ''}
+        </label>`;
+    }).join('');
+    // 전체선택 초기 상태 동기화
+    if (bulkSelectAll) {
+      const total   = bulkList.querySelectorAll('.bulk-edit-chk').length;
+      const checked = bulkList.querySelectorAll('.bulk-edit-chk:checked').length;
+      bulkSelectAll.checked       = (checked === total);
+      bulkSelectAll.indeterminate = (checked > 0 && checked < total);
+    }
+    bulkSection.style.display = '';
+  }
 }
 
 // ── 과제 수정 저장 ────────────────────────────────────────
@@ -4346,12 +4414,71 @@ function saveEditAssign() {
     a.endDate = inputEndDate;
   }
 
-  // Firebase 저장 (문제8: _resetBatchState 호출)
+  // ── 일괄 수정: 체크된 다른 학생들도 동일하게 수정 ──────────
+  const checkedBulk   = [...document.querySelectorAll('.bulk-edit-chk:checked')];
+  const skippedNames  = []; // 겹침으로 스킵된 학생 이름
+  let   bulkCount     = 0;  // 실제 수정된 학생 수
+
+  for (const chk of checkedBulk) {
+    const ba = DB.assignments.find(x => x.id === chk.dataset.assignId);
+    if (!ba) continue;
+
+    // 보카: 겹침 체크 (자기 자신 제외)
+    if (isVoca) {
+      const existingList = DB.assignments.filter(x =>
+        x.studentId === ba.studentId && x.type === type && x.id !== ba.id
+      );
+      const overlapping = existingList.find(ex =>
+        datesOverlap(
+          {startDate: ex.startDate, count: ex.sets||0, studyDays: ex.studyDays||null},
+          {startDate, count: sets, studyDays: studyDays||null}
+        )
+      );
+      if (overlapping) {
+        const bstu = getStudentById(ba.studentId);
+        skippedNames.push(bstu?.name || '?');
+        continue;
+      }
+    }
+
+    // 수정 적용
+    ba.book      = book;
+    ba.startDate = startDate;
+    if (isVoca) {
+      ba.sets     = sets;
+      ba.perSet   = perSet;
+      ba.memorize = memorize;
+      ba.recall   = recall;
+      ba.test     = test;
+      ba.testType = testType;
+      if (type === 'SV') {
+        if (studyDays) ba.studyDays = studyDays;
+        else           delete ba.studyDays;
+      }
+    }
+    if (isTextbook) {
+      ba.endDate = inputEndDate;
+    }
+    bulkCount++;
+  }
+
+  // Firebase 저장 1회 (문제8: _resetBatchState 호출)
   saveAssignmentsFb();
   _editingAssignId = null;
   _resetBatchState();
   closeModal('modal-add-assign');
-  toast(`과제가 수정되었습니다.`, 'success');
+
+  // 결과 toast
+  let toastMsg;
+  if (bulkCount === 0) {
+    toastMsg = '과제가 수정되었습니다.';
+  } else {
+    toastMsg = `${1 + bulkCount}명의 과제가 수정되었습니다.`;
+  }
+  if (skippedNames.length > 0) {
+    toastMsg += ` (날짜 겹침으로 ${skippedNames.join(', ')} 제외)`;
+  }
+  toast(toastMsg, 'success');
   showPage(currentPage);
 }
 
