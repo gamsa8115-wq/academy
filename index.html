@@ -2444,6 +2444,7 @@ function renderAssignPage() {
           <span style="width:10px;height:10px;border-radius:50%;background:${getClassColor(realIdx)};flex-shrink:0;display:inline-block"></span>
           <span class="card-title">${cls.name}</span>
           <span class="badge b-gray">${students.length}명</span>
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto;color:var(--text2)" onclick="collapseAllInClass('${cls.id}')">▲ 전체 닫기</button>
           <button class="btn btn-success btn-sm" onclick="openAddAssignModal('${cls.id}')">＋ 과제 추가</button>
         </div>
         <div style="padding:0">${studentsHTML}</div>
@@ -2627,6 +2628,22 @@ function toggleStuDetail(stuId) {
   // 상태 기억
   if (willOpen) _openStudents.add(stuId);
   else          _openStudents.delete(stuId);
+}
+
+// 반 내 전체 학생 닫기
+function collapseAllInClass(clsId) {
+  const card = document.querySelector(`.assign-cls-card[data-cls="${clsId}"]`);
+  if (!card) return;
+  card.querySelectorAll('.assign-acc-row').forEach(row => {
+    const stuId = row.dataset.stuId;
+    const body  = document.getElementById('acc-body-'  + stuId);
+    const arrow = document.getElementById('acc-arrow-' + stuId);
+    if (body && body.style.display !== 'none') {
+      body.style.display = 'none';
+      if (arrow) arrow.style.transform = 'rotate(0deg)';
+      _openStudents.delete(stuId);
+    }
+  });
 }
 
 // 완료 과제 섹션 토글 (오류2,5,6 해결)
