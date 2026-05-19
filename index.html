@@ -3112,7 +3112,7 @@ function renderStatusPage() {
             class="sc-memo-textarea"
             style="width:100%;min-height:48px;max-height:120px;resize:vertical;
               border:1px solid transparent;border-radius:5px;padding:4px 6px;
-              font-size:13.2px;font-family:inherit;color:var(--text);
+              font-size:13.2px;font-family:inherit;color:#1A5FAD;font-style:italic;font-weight:600;
               background:transparent;outline:none;line-height:1.5;box-sizing:border-box"
             onfocus="this.style.background='var(--surface)';this.style.borderColor='var(--blue-mid)'"
             onblur="this.style.background='transparent';this.style.borderColor='transparent';saveStuMemo('${stu.id}',this.value)"
@@ -3164,7 +3164,7 @@ function renderStatusPage() {
       td.sc-empty{text-align:center;color:var(--border2);font-size:16px;
         padding:8px 14px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);
         vertical-align:middle;background:var(--bg);min-width:160px}
-      textarea.sc-memo-textarea::placeholder{color:#1A5FAD;font-style:italic;font-weight:600}
+      textarea.sc-memo-textarea::placeholder{color:var(--text3);font-size:0.8em;font-style:normal;font-weight:400}
     </style>`;
 }
 
