@@ -436,6 +436,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div class="sb-item" onclick="showPage('assign')" id="nav-assign">
       <span class="sb-item-icon">📝</span>과제설정
     </div>
+    <div class="sb-item" onclick="showPage('stuDetail')" id="nav-stuDetail">
+      <span class="sb-item-icon">👤</span>학생개별관리
+    </div>
     <div class="sb-item" onclick="showPage('status')" id="nav-status">
       <span class="sb-item-icon">📊</span>반별학습현황
     </div>
@@ -686,7 +689,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       </div>
 
       <!-- 공통 필드 -->
-      <div class="form-row form-row-2" style="margin-bottom:12px">
+      <div class="form-row form-row-2" style="margin-bottom:8px">
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label">교재명</label>
           <input class="form-input" id="assign-book" placeholder="예: 천문장 입문">
@@ -694,6 +697,26 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label">시작 날짜</label>
           <input class="form-input" type="date" id="assign-start" oninput="syncEndDateMin()">
+        </div>
+      </div>
+
+      <!-- 교재 빠른 선택 -->
+      <div id="book-quick-section" style="display:none;margin-bottom:12px">
+        <div style="padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap">
+            <span style="font-size:11px;font-weight:700;color:var(--text2)">교재 빠른 선택</span>
+            <span style="font-size:11px;color:var(--text3)">—</span>
+            <span style="font-size:12px;color:var(--text2);white-space:nowrap">차수</span>
+            <input type="number" id="quick-ncha" min="1" max="30" placeholder="예) 2"
+              oninput="updateQuickBook()"
+              style="width:60px;text-align:center;font-size:13px;font-weight:700;
+                padding:4px 8px;border:1px solid var(--border2);border-radius:6px;
+                background:var(--surface);color:var(--text)">
+            <span style="font-size:13px;color:var(--text2)">차</span>
+            <span style="font-size:11px;color:var(--text3)">비워두면 차수 없이 입력</span>
+          </div>
+          <div id="quick-chips" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+          <div id="quick-hint" style="font-size:11px;min-height:15px;margin-top:6px"></div>
         </div>
       </div>
 
@@ -877,9 +900,12 @@ function getDefaultData() {
     students:    [],
     assignments: [],
     offDays:     [],
-    stuMemos:    {},
-    classMemos:  {},
-    attendance:  {},
+    stuMemos:       {},
+    classMemos:     {},
+    stuPlans:       {},
+    bookFavorites:  {},
+    bookLibrary:    {},
+    attendance:     {},
     events:      [], // 학원 일정
   };
 }
@@ -904,9 +930,21 @@ function sanitizeDB(parsed) {
     students:    toArray(parsed.students),
     assignments: toArray(parsed.assignments),
     offDays:     toArray(parsed.offDays),
-    stuMemos:    toObj(parsed.stuMemos),
-    classMemos:  toObj(parsed.classMemos),
-    attendance:  toObj(parsed.attendance),
+    stuMemos:       toObj(parsed.stuMemos),
+    classMemos:     toObj(parsed.classMemos),
+    stuPlans:       toObj(parsed.stuPlans),
+    bookFavorites:  toObj(parsed.bookFavorites),
+    bookLibrary:    (() => {
+      const saved = toObj(parsed.bookLibrary);
+      const lib   = {};
+      ['SV','HV','MAIN','SUB'].forEach(t => {
+        lib[t] = (Array.isArray(saved[t]) && saved[t].length > 0)
+          ? saved[t]
+          : [...BOOK_LIBRARY_DEFAULT[t]];
+      });
+      return lib;
+    })(),
+    attendance:     toObj(parsed.attendance),
     events:      toArray(parsed.events),
   };
 }
@@ -962,6 +1000,125 @@ function saveAttendanceDate(dateStr) {
 function saveStuMemoFb(stuId) {
   const val = DB.stuMemos[stuId] || null;
   _fbUpdate({ [`${FB_PATH}/stuMemos/${stuId}`]: val });
+}
+function saveStuPlanFb(stuId) {
+  const val = (DB.stuPlans && DB.stuPlans[stuId]) || null;
+  _fbUpdate({ [`${FB_PATH}/stuPlans/${stuId}`]: val });
+}
+
+function saveBookLibraryFb(type) {
+  const val = (DB.bookLibrary && DB.bookLibrary[type]) || null;
+  _fbUpdate({ [`${FB_PATH}/bookLibrary/${type}`]: (val && val.length > 0) ? val : null });
+}
+
+// ── 교재 빠른 선택 ──────────────────────────────────────────
+let _lastPickedBook = '';
+function renderBookQuickSelect() {
+  const type    = getCurrentAssignType();
+  const section = document.getElementById('book-quick-section');
+  const chipsEl = document.getElementById('quick-chips');
+  if (!section || !chipsEl) return;
+  if (!type) { section.style.display = 'none'; return; }
+
+  const books = (DB.bookLibrary && Array.isArray(DB.bookLibrary[type]))
+    ? DB.bookLibrary[type] : [];
+
+  section.style.display = '';
+  chipsEl.innerHTML = books.map(b => {
+    const bj = JSON.stringify(b);
+    return `<button type="button"
+        style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:5px;
+          border:1px solid var(--border2);background:var(--surface);color:var(--text2);
+          cursor:pointer"
+        onmouseover="this.style.background='var(--surface2)'"
+        onmouseout="this.style.background='var(--surface)'"
+        onclick="pickQuickBook(${bj})">${b}</button>`;
+  }).join('');
+}
+function pickQuickBook(book) {
+  _lastPickedBook = book;
+  applyQuickBook();
+}
+function updateQuickBook() {
+  if (_lastPickedBook) applyQuickBook();
+}
+function applyQuickBook() {
+  const n      = (document.getElementById('quick-ncha')?.value || '').trim();
+  const result = n ? `${n}차 ${_lastPickedBook}` : _lastPickedBook;
+  const bookEl = document.getElementById('assign-book');
+  if (bookEl) bookEl.value = result;
+  const hint   = document.getElementById('quick-hint');
+  if (hint) {
+    hint.textContent = `✓  "${result}" 입력됨 — 필요하면 직접 수정하세요`;
+    hint.style.color = 'var(--green)';
+  }
+}
+function saveBookFavoritesFb(type) {
+  const val = (DB.bookFavorites && DB.bookFavorites[type]);
+  _fbUpdate({ [`${FB_PATH}/bookFavorites/${type}`]: (val && val.length > 0) ? val : null });
+}
+function getCurrentAssignType() {
+  if (_editingAssignId) {
+    const a = DB.assignments.find(x => x.id === _editingAssignId);
+    return a ? a.type : null;
+  }
+  const radio = document.querySelector('input[name="assign-type"]:checked');
+  return radio ? radio.value : null;
+}
+function renderBookFavoriteChips() {
+  const type    = getCurrentAssignType();
+  const section = document.getElementById('book-favorites-section');
+  const chipsEl = document.getElementById('book-fav-chips');
+  if (!section || !chipsEl) return;
+  if (!type) { section.style.display = 'none'; return; }
+
+  const favs = (DB.bookFavorites && Array.isArray(DB.bookFavorites[type]))
+    ? DB.bookFavorites[type] : [];
+
+  section.style.display = '';
+  chipsEl.innerHTML = favs.length === 0
+    ? `<span style="font-size:11px;color:var(--text3)">즐겨찾기 없음 — 교재명 입력 후 ★ 버튼으로 추가하세요</span>`
+    : favs.map(book => {
+        const bj = JSON.stringify(book), tj = JSON.stringify(type);
+        return `<button type="button" onclick="fillBookFav(${bj})"
+            style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px;
+              border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer"
+            >${book}</button>
+          <button type="button" onclick="removeBookFavorite(${tj},${bj})"
+            style="font-size:11px;padding:2px 5px;border:none;background:transparent;
+              color:var(--text3);cursor:pointer;margin-left:-7px"
+            title="즐겨찾기 제거">×</button>`;
+      }).join('');
+}
+function fillBookFav(book) {
+  const el = document.getElementById('assign-book');
+  if (el) { el.value = book; el.focus(); }
+}
+function addBookFavorite() {
+  const book = (document.getElementById('assign-book')?.value || '').trim();
+  if (!book) { toast('교재명을 먼저 입력하세요.', 'error'); return; }
+  const type = getCurrentAssignType();
+  if (!type) { toast('유형을 먼저 선택하세요.', 'error'); return; }
+  if (!DB.bookFavorites) DB.bookFavorites = {};
+  if (!Array.isArray(DB.bookFavorites[type])) DB.bookFavorites[type] = [];
+  if (DB.bookFavorites[type].includes(book)) { toast('이미 즐겨찾기에 있습니다.', 'warning'); return; }
+  DB.bookFavorites[type].push(book);
+  saveBookFavoritesFb(type);
+  renderBookFavoriteChips();
+  toast(`"${book}" 즐겨찾기에 추가되었습니다.`, 'success');
+}
+function removeBookFavorite(type, book) {
+  if (!DB.bookFavorites || !Array.isArray(DB.bookFavorites[type])) return;
+  DB.bookFavorites[type] = DB.bookFavorites[type].filter(b => b !== book);
+  saveBookFavoritesFb(type);
+  renderBookFavoriteChips();
+}
+let _planTimer = null;
+function saveStuPlan(stuId, val) {
+  if (!DB.stuPlans) DB.stuPlans = {};
+  DB.stuPlans[stuId] = val.trim();
+  clearTimeout(_planTimer);
+  _planTimer = setTimeout(() => saveStuPlanFb(stuId), 300);
 }
 
 // 3. 반 메모 — 해당 반 경로만 수정
@@ -1037,6 +1194,7 @@ function saveDeleteClassFb(stuIds, classId) {
   updates[`${FB_PATH}/assignments`] = DB.assignments.length > 0 ? DB.assignments : null;
   // stuMemos 개별 삭제
   stuIds.forEach(id => { updates[`${FB_PATH}/stuMemos/${id}`] = null; });
+  stuIds.forEach(id => { updates[`${FB_PATH}/stuPlans/${id}`] = null; });
   // classMemos 삭제
   updates[`${FB_PATH}/classMemos/${classId}`] = null;
   // attendance에서 해당 학생들 제거 (이미 로컬 DB에서 처리됨)
@@ -1052,6 +1210,7 @@ function saveDeleteStudentFb(studentId) {
   updates[`${FB_PATH}/students`]    = DB.students.length > 0 ? DB.students : null;
   updates[`${FB_PATH}/assignments`] = DB.assignments.length > 0 ? DB.assignments : null;
   updates[`${FB_PATH}/stuMemos/${studentId}`] = null;
+  updates[`${FB_PATH}/stuPlans/${studentId}`] = null;
   Object.keys(DB.attendance).forEach(date => {
     updates[`${FB_PATH}/attendance/${date}`] =
       DB.attendance[date].length > 0 ? DB.attendance[date] : null;
@@ -1112,7 +1271,7 @@ function connectFirebaseListeners() {
   Object.values(_fbListeners).forEach(off => off && off());
   _fbListeners = {};
 
-  const paths = ['classes','students','assignments','offDays','stuMemos','classMemos','attendance','events'];
+  const paths = ['classes','students','assignments','offDays','stuMemos','classMemos','stuPlans','bookFavorites','bookLibrary','attendance','events'];
 
   paths.forEach(path => {
     const ref = _fbDB.ref(`${FB_PATH}/${path}`);
@@ -1127,8 +1286,17 @@ function connectFirebaseListeners() {
       if (path === 'students')    DB.students    = toArray(val);
       if (path === 'assignments') DB.assignments = toArray(val);
       if (path === 'offDays')     DB.offDays     = toArray(val);
-      if (path === 'stuMemos')    DB.stuMemos    = toObj(val);
-      if (path === 'classMemos')  DB.classMemos  = toObj(val);
+      if (path === 'stuMemos')       DB.stuMemos       = toObj(val);
+      if (path === 'classMemos')     DB.classMemos     = toObj(val);
+      if (path === 'stuPlans')       DB.stuPlans       = toObj(val);
+      if (path === 'bookFavorites')  DB.bookFavorites  = toObj(val);
+      if (path === 'bookLibrary') {
+        const saved = toObj(val);
+        if (!DB.bookLibrary) DB.bookLibrary = {};
+        ['SV','HV','MAIN','SUB'].forEach(t => {
+          if (Array.isArray(saved[t]) && saved[t].length > 0) DB.bookLibrary[t] = saved[t];
+        });
+      }
       if (path === 'attendance')  DB.attendance  = toObj(val);
       if (path === 'events')      DB.events      = toArray(val);
 
@@ -1354,6 +1522,32 @@ function saveClassMemo(clsId, val) {
 const TYPE_LABELS = {SV:'수업보카', HV:'홈보카', MAIN:'주교재', SUB:'부교재'};
 const TYPE_CHIPS  = {SV:'type-sv',   HV:'type-hv',  MAIN:'type-main', SUB:'type-sub'};
 
+// 교재 라이브러리 기본 데이터 (처음 로드 시 DB가 비어있으면 이 값으로 초기화)
+const BOOK_LIBRARY_DEFAULT = {
+  SV:  ['1-Story','2-Story','3-Story','4-Story','5-Story','6-Story',
+        '1-Basic','2-Basic','3-Basic','4-Basic','5-Basic','6-Basic','7-Basic','8-Basic',
+        '9-Basic','10-Basic','11-Basic','12-Basic',
+        '5형식','초등필수','중등필수','천문장입문','천문장기본','천문장완성',
+        '고1필수','수능필수1','과거/과거분사'],
+  HV:  ['1-Story','2-Story','3-Story','4-Story','5-Story','6-Story',
+        '1-Basic','2-Basic','3-Basic','4-Basic','5-Basic','6-Basic','7-Basic','8-Basic',
+        '9-Basic','10-Basic','11-Basic','12-Basic',
+        '5형식','초등필수','중등필수','천문장입문','천문장기본','천문장완성',
+        '고1필수','수능필수1','과거/과거분사'],
+  MAIN:['알파벳북',
+        '1-Phonics','2-Phonics','3-Phonics','4-Phonics','5-Phonics','6-Phonics',
+        '1-Story','2-Story','3-Story','4-Story','5-Story','6-Story',
+        '1-Basic','2-Basic','3-Basic','4-Basic','5-Basic','6-Basic','7-Basic','8-Basic',
+        '9-Basic','10-Basic','11-Basic','12-Basic',
+        '중1-3800제','중2-3800제','중3-3800제'],
+  SUB: ['알파벳북','P1-워크북','P2-워크북',
+        '5형식(주+동+시)','5형식(부사구)','5형식(준동사)','5형식(분석)','5형식(분/해)','5형식(해석)',
+        'E1-워크북','E2-워크북','E3-워크북','E4-워크북','E5-워크북','E6-워크북','M-워크북',
+        '1차-초등단어장','1차-중등단어장','3인칭 일반동사','과거 일반동사',
+        '과거/과거분사1','과거/과거분사2',
+        '(입문/테스트)천문장','(입문/숙제)천문장','(기본/테스트)천문장','(기본/숙제)천문장']
+};
+
 // ══════════════════════════════════════════════════════════
 // 4. 네비게이션
 // ══════════════════════════════════════════════════════════
@@ -1365,7 +1559,7 @@ function showPage(page, classId) {
   if (classId !== undefined) currentClassFilter = classId;
 
   // 네비 활성화
-  ['dashboard','student','attendance','assign','status','history','voca','textbook','settings'].forEach(p => {
+  ['dashboard','student','attendance','assign','stuDetail','status','history','voca','textbook','settings'].forEach(p => {
     const el = document.getElementById('nav-'+p);
     if (el) el.classList.toggle('active', p === page);
   });
@@ -1381,6 +1575,7 @@ function showPage(page, classId) {
     student:     renderStudentPage,
     attendance:  renderAttendancePage,
     assign:      renderAssignPage,
+    stuDetail:   renderStudentDetailPage,
     status:      renderStatusPage,
     history:     renderHistoryPage,
     voca:        renderVocaPage,
@@ -2278,6 +2473,12 @@ const _openStudents = new Set();
 const _openDone     = new Set(); // 완료 과제 섹션 열림 상태 (학생별)
 let _assignViewMode = 'student'; // 'student' | 'type'
 function setAssignViewMode(mode) { _assignViewMode = mode; showPage('assign'); }
+
+// 학생개별관리 상태
+let _selectedStudentId   = null;
+let _stuDetailClassFilter = null;
+function selectStudent(stuId) { _selectedStudentId = stuId; showPage('stuDetail'); }
+function setStudentDetailClass(clsId) { _stuDetailClassFilter = clsId; _selectedStudentId = null; showPage('stuDetail'); }
 // 반별학습이력 과제 유형 필터 상태 (문제4: 탭 변경해도 유지)
 const _historyTypeFilter = new Set(['SV','HV','MAIN','SUB']); // 기본: 전체
 
@@ -2910,6 +3111,268 @@ function filterAssignStudents(query) {
 
   const el = document.getElementById('assign-search-result');
   if (el) el.textContent = q ? `${visibleCount}명` : '';
+}
+
+// ══════════════════════════════════════════════════════════
+// 8-0. 학생개별관리 페이지
+// ══════════════════════════════════════════════════════════
+function renderStudentDetailPage() {
+  if (DB.classes.length === 0) {
+    return `<div class="page-header"><div class="page-title">학생개별관리</div></div>
+      <div class="empty-state"><div class="empty-title">반이 없습니다</div><div class="empty-sub">먼저 반을 등록해 주세요.</div></div>`;
+  }
+  const today = formatDate(new Date());
+
+  // ── 반 탭 (전체 없이 반만) ────────────────────────────────
+  if (!_stuDetailClassFilter && DB.classes.length > 0) _stuDetailClassFilter = DB.classes[0].id;
+  const classTabsHTML = `
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
+      ${DB.classes.map(cls=>`<button class="tab-btn ${_stuDetailClassFilter===cls.id?'active':''}" onclick="setStudentDetailClass('${cls.id}')">${cls.name}</button>`).join('')}
+    </div>`;
+
+  // ── 학생 칩 목록 ──────────────────────────────────────────
+  const showStudents = _stuDetailClassFilter
+    ? getStudentsByClass(_stuDetailClassFilter)
+    : DB.students;
+
+  if (showStudents.length === 0) {
+    return `<div class="page-header"><div class="page-title">학생개별관리</div><div class="page-sub">학생을 선택해 개인 이력과 진도 계획을 확인합니다.</div></div>
+      ${classTabsHTML}<div class="empty-state" style="padding:40px"><div class="empty-sub">해당 반에 학생이 없습니다.</div></div>`;
+  }
+
+  const chipsHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:14px;border-bottom:1.5px solid var(--border)">
+      ${showStudents.map(stu => {
+        const ci = DB.classes.findIndex(c=>c.id===stu.classId);
+        const color = getClassColor(ci>=0?ci:0);
+        const active = stu.id === _selectedStudentId;
+        return `<button onclick="selectStudent('${stu.id}')"
+            style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;
+              font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .15s;
+              ${active?`background:${color};color:#fff;border-color:${color}`:`background:var(--surface);color:var(--text2);border-color:var(--border2)`}">
+            <span style="width:6px;height:6px;border-radius:50%;background:${active?'rgba(255,255,255,.7)':color};flex-shrink:0"></span>
+            ${stu.name}
+          </button>`;
+      }).join('')}
+    </div>`;
+
+  // ── 학생 상세 ──────────────────────────────────────────────
+  let detailHTML = '';
+  const selStu = showStudents.find(s=>s.id===_selectedStudentId);
+
+  if (!selStu) {
+    detailHTML = `
+      <div style="padding:48px 0;text-align:center;color:var(--text3)">
+        <div style="font-size:40px;margin-bottom:12px">👆</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text2)">학생을 선택하세요</div>
+        <div style="font-size:12px;margin-top:6px">위의 버튼을 클릭하면 개인 이력을 확인할 수 있습니다</div>
+      </div>`;
+  } else {
+    const stu    = selStu;
+    const cls    = DB.classes.find(c=>c.id===stu.classId);
+    const ci     = DB.classes.findIndex(c=>c.id===stu.classId);
+    const clsCol = getClassColor(ci>=0?ci:0);
+    const assigns = DB.assignments.filter(a=>a.studentId===stu.id);
+    const activeCnt = assigns.filter(a=>!isAssignDone(a)).length;
+    const doneCnt   = assigns.filter(a=> isAssignDone(a)).length;
+    const memoVal   = (DB.stuMemos && DB.stuMemos[stu.id]) || '';
+    const planVal   = (DB.stuPlans && DB.stuPlans[stu.id]) || '';
+    const memoSafe  = memoVal.replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const planSafe  = planVal.replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const createdAt = stu.createdAt ? stu.createdAt.slice(0,10) : '미등록';
+
+    // ── 프로필 카드 ───────────────────────────────────────────
+    const profileCard = `
+      <div class="card" style="margin-bottom:14px;padding:16px 20px;display:flex;align-items:flex-start;gap:16px;overflow:hidden">
+        <div style="width:48px;height:48px;border-radius:12px;background:${clsCol};display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:800;flex-shrink:0">
+          ${stu.name?stu.name.charAt(0):'?'}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <span style="font-size:18px;font-weight:800;color:var(--text)">${stu.name}</span>
+            <span class="badge b-gray">${cls?.name||''}</span>
+            <span style="font-size:11px;color:var(--text3)">등록 ${createdAt}</span>
+            <span style="font-size:11px;color:var(--text3)">과제 진행중 ${activeCnt}건 · 완료 ${doneCnt}건</span>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px">특이사항 메모</div>
+          <textarea
+            style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;
+              font-size:12px;color:#1A5FAD;font-style:italic;font-weight:600;font-family:inherit;
+              background:var(--surface2);min-height:40px;max-height:100px;resize:vertical;
+              outline:none;line-height:1.5;box-sizing:border-box"
+            placeholder="특이사항 메모..."
+            onfocus="this.style.borderColor='var(--blue)'"
+            onblur="this.style.borderColor='var(--border)';saveStuMemo('${stu.id}',this.value)"
+          >${memoSafe}</textarea>
+        </div>
+      </div>`;
+
+    // ── 과제 이력 (4컬럼 가로: SV→HV→MAIN→SUB, 각 이력 세로 정렬) ─
+    const TYPE_ORDER  = ['SV','HV','MAIN','SUB'];
+    const HDR_BG  = {SV:'#FFF8F0', HV:'#EBF2FC', MAIN:'#EEF9E8', SUB:'#FFF0F5'};
+    const CELL_BG = {SV:'#FFFCF8', HV:'#F5F9FF', MAIN:'#F5FDF0', SUB:'#FFF8FB'};
+
+    const colHeaders = TYPE_ORDER.map((tp, i) => {
+      const ta   = assigns.filter(a => a.type === tp);
+      const an   = ta.filter(a => !isAssignDone(a)).length;
+      const bl   = i === 2 ? 'border-left:2px solid var(--border2)'
+                 : i > 0  ? 'border-left:1px solid var(--border)' : '';
+      return `
+        <div style="padding:9px 14px;background:${HDR_BG[tp]};${bl}">
+          <span class="type-chip ${TYPE_CHIPS[tp]}">${TYPE_LABELS[tp]}</span>
+          ${an > 0 ? `<span class="badge b-gray" style="margin-left:6px">진행중 ${an}</span>` : ''}
+          ${ta.length === 0 ? `<span style="font-size:10px;color:var(--text3);margin-left:6px">이력 없음</span>` : ''}
+        </div>`;
+    }).join('');
+
+    const colBodies = TYPE_ORDER.map((tp, i) => {
+      const isVoca = tp === 'SV' || tp === 'HV';
+      const ta     = assigns.filter(a => a.type === tp)
+                      .sort((a,b) => (b.startDate||'').localeCompare(a.startDate||''));
+      const bl     = i === 2 ? 'border-left:2px solid var(--border2)'
+                   : i > 0  ? 'border-left:1px solid var(--border)' : '';
+
+      if (ta.length === 0) {
+        return `<div style="${bl};padding:20px 14px;text-align:center;color:var(--text3);font-size:14px">—</div>`;
+      }
+
+      const items = ta.map(a => {
+        const done  = isAssignDone(a);
+        const dotC  = done ? '#3D9A1A' : '#2B7FD4';
+        const dotSh = done ? '' : 'box-shadow:0 0 0 3px rgba(43,127,212,.2)';
+
+        let chips = '', progHTML = '';
+        if (isVoca) {
+          const tot = a.sets || 0;
+          if (tot)        chips += `<span class="chip-sm">${tot}세트</span>`;
+          if (a.perSet)   chips += `<span class="chip-sm">1set ${a.perSet}</span>`;
+          if (a.memorize) chips += `<span class="chip-sm">암기 ${a.memorize}</span>`;
+          if (a.recall)   chips += `<span class="chip-sm">리콜 ${a.recall}</span>`;
+          if (a.test)     chips += `<span class="chip-sm">테스트 ${a.test}점${a.testType?' · '+a.testType:''}</span>`;
+          if (!done && tot > 0) {
+            const allD = getStudyDates(a.startDate, tot, a.type==='SV'?(a.studyDays||null):null);
+            const ds   = allD.filter(d => d <= today).length;
+            const pct  = Math.round(ds / tot * 100);
+            const barC = pct >= 70 ? '#2B7FD4' : pct >= 30 ? '#D4820F' : '#B83224';
+            progHTML = `
+              <div style="margin-top:5px;display:flex;align-items:center;gap:6px">
+                <div style="width:80px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+                  <div style="height:100%;width:${pct}%;background:${barC};border-radius:2px"></div>
+                </div>
+                <span style="font-size:10px;color:var(--text3)">${ds}/${tot} · ${pct}%</span>
+              </div>`;
+          }
+        }
+
+        let dateRange = a.startDate || '';
+        if (isVoca && a.sets && a.startDate) {
+          const last = getLastStudyDate(a.startDate, a.sets, a.type==='SV'?(a.studyDays||null):null);
+          if (last) dateRange += ` ~ ${last}`;
+        } else if (!isVoca && a.endDate) {
+          dateRange += ` ~ ${a.endDate}`;
+        }
+
+        const badge = done
+          ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;background:#EAF4DF;color:#1E5E14;border:1px solid #B8DDA0">완료 ✓</span>`
+          : `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;background:#E8F1FF;color:#1055A8;border:1px solid #B5D4F4">진행중</span>`;
+
+        return `
+          <div style="padding:9px 14px;border-bottom:1px solid var(--border);background:${done?'#F8F8F6':CELL_BG[tp]}">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${dotC};${dotSh}"></div>
+              <span style="font-size:12px;font-weight:800;color:${done?'var(--text2)':'var(--text)'};white-space:nowrap">${a.book}</span>
+              <span style="font-size:10px;color:var(--text3);white-space:nowrap">${dateRange}</span>
+              ${badge}
+            </div>
+            ${chips ? `<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px;padding-left:14px">${chips}</div>` : ''}
+          </div>`;
+      }).join('');
+
+      return `<div style="${bl}">${items}</div>`;
+    }).join('');
+
+    const historyHTML = `
+      <div class="card" style="margin-bottom:12px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:2px solid var(--border2)">
+          ${colHeaders}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;align-items:start;overflow-x:auto">
+          ${colBodies}
+        </div>
+      </div>`;
+
+    // ── 출결 요약 ─────────────────────────────────────────────
+    const attendData  = DB.attendance || {};
+    const absentDates = Object.entries(attendData)
+      .filter(([,ids]) => Array.isArray(ids) && ids.includes(stu.id))
+      .map(([d]) => d).sort();
+    const totalAbsent = absentDates.length;
+
+    const byMonth = {};
+    absentDates.forEach(d => {
+      const ym = d.slice(0,7);
+      if (!byMonth[ym]) byMonth[ym] = [];
+      byMonth[ym].push(d.slice(5));
+    });
+
+    const now2 = new Date();
+    const recentMonths = [];
+    for (let i=11;i>=0;i--) {
+      const md = new Date(now2.getFullYear(), now2.getMonth()-i, 1);
+      const ym = `${md.getFullYear()}-${String(md.getMonth()+1).padStart(2,'0')}`;
+      if (byMonth[ym]) recentMonths.push({ym, dates: byMonth[ym]});
+    }
+
+    const attendBody = recentMonths.length===0
+      ? `<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px">최근 12개월 결석 기록 없음</div>`
+      : recentMonths.map(({ym,dates})=>`
+          <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:12px;font-weight:700;color:var(--text2);min-width:62px">${ym}</span>
+            <span style="font-size:12px;font-weight:700;color:#B83224">결석 ${dates.length}회</span>
+            <span style="font-size:10px;color:var(--text3)">${dates.join(', ')}</span>
+          </div>`).join('');
+
+    const attendCard = `
+      <div class="card" style="margin-bottom:12px;overflow:hidden">
+        <div class="card-header">
+          <span style="font-size:12px;font-weight:800;color:var(--text)">출결 요약</span>
+          <span class="badge b-gray">총 결석 ${totalAbsent}회</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:4px">최근 12개월 기준</span>
+        </div>
+        <div style="padding:0 16px">${attendBody}</div>
+      </div>`;
+
+    // ── 진도 계획 ─────────────────────────────────────────────
+    const planCard = `
+      <div class="card" style="margin-bottom:12px;overflow:hidden">
+        <div class="card-header">
+          <span style="font-size:12px;font-weight:800;color:#4A2D99">📋 진도 계획</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:6px">다음 진행할 교재·순서를 메모하세요</span>
+        </div>
+        <div style="padding:12px 16px">
+          <textarea
+            style="width:100%;border:1px solid var(--border);border-radius:6px;padding:10px 12px;
+              font-size:12px;color:var(--text);font-family:inherit;
+              background:var(--surface2);min-height:72px;resize:vertical;
+              outline:none;line-height:1.6;box-sizing:border-box"
+            placeholder="예: 5차 완료 후 → 중등필수4차(60세트) → 천문장 심화편"
+            onfocus="this.style.borderColor='#4A2D99';this.style.background='var(--surface)'"
+            onblur="this.style.borderColor='var(--border)';this.style.background='var(--surface2)';saveStuPlan('${stu.id}',this.value)"
+          >${planSafe}</textarea>
+        </div>
+      </div>`;
+
+    detailHTML = profileCard + historyHTML + attendCard + planCard;
+  }
+
+  return `
+    <div class="page-header">
+      <div class="page-title">학생개별관리</div>
+      <div class="page-sub">학생을 선택해 개인 이력과 진도 계획을 확인합니다.</div>
+    </div>
+    ${classTabsHTML}
+    ${chipsHTML}
+    ${detailHTML}`;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -3786,6 +4249,51 @@ function renderSettingsPage() {
       <div>${offDayRows}</div>
     </div>
 
+    <!-- 교재 라이브러리 관리 -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <span class="card-title">📚 교재 라이브러리</span>
+        <span class="badge b-gray">과제 추가 시 빠른 선택 목록</span>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info" style="margin-bottom:14px">
+          ℹ️ 유형별 기본교재 목록을 관리합니다. 과제 추가 시 <strong>차수 입력 + 클릭</strong>으로 교재명을 빠르게 입력할 수 있습니다.
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px">
+          ${['SV','HV','MAIN','SUB'].map((t, i) => `
+            <button class="tab-btn ${i===0?'active':''}" id="lib-tab-${t}"
+              onclick="showLibTab('${t}',this)">${TYPE_LABELS[t]}</button>
+          `).join('')}
+        </div>
+        ${['SV','HV','MAIN','SUB'].map((t, i) => {
+          const books = (DB.bookLibrary && Array.isArray(DB.bookLibrary[t])) ? DB.bookLibrary[t] : [];
+          return `
+          <div id="lib-body-${t}" style="${i===0?'':'display:none'}">
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;min-height:32px">
+              ${books.length === 0
+                ? `<span style="font-size:12px;color:var(--text3)">등록된 교재 없음</span>`
+                : books.map(b => {
+                    const bj = JSON.stringify(b), tj = JSON.stringify(t);
+                    return `<span style="display:flex;align-items:center;gap:3px;background:var(--surface2);
+                        border:1px solid var(--border);border-radius:5px;padding:3px 8px 3px 10px;font-size:12px;font-weight:700">
+                      ${b}
+                      <button onclick="removeBookFromLib(${tj},${bj})"
+                        style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;
+                          line-height:1;padding:0 2px"
+                        title="삭제">×</button>
+                    </span>`;
+                  }).join('')}
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input class="form-input" id="lib-new-${t}" placeholder="새 교재명 입력 후 추가"
+                style="flex:1" onkeydown="if(event.key==='Enter') addBookToLib(${JSON.stringify(t)})">
+              <button class="btn btn-primary btn-sm" onclick="addBookToLib(${JSON.stringify(t)})">＋ 추가</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
     <!-- 법정 공휴일 (자동 적용) -->
     <div class="card">
       <div class="card-header">
@@ -3796,6 +4304,35 @@ function renderSettingsPage() {
         <div style="line-height:2">${holidayList}</div>
       </div>
     </div>`;
+}
+
+// ── 교재 라이브러리 관리 ──────────────────────────────────────
+function showLibTab(type, btn) {
+  ['SV','HV','MAIN','SUB'].forEach(t => {
+    const body = document.getElementById('lib-body-' + t);
+    const tab  = document.getElementById('lib-tab-'  + t);
+    if (body) body.style.display = (t === type) ? '' : 'none';
+    if (tab)  { tab.classList.toggle('active', t === type); }
+  });
+}
+function addBookToLib(type) {
+  const input = document.getElementById('lib-new-' + type);
+  const book  = (input?.value || '').trim();
+  if (!book) { toast('교재명을 입력하세요.', 'error'); return; }
+  if (!DB.bookLibrary) DB.bookLibrary = {};
+  if (!Array.isArray(DB.bookLibrary[type])) DB.bookLibrary[type] = [];
+  if (DB.bookLibrary[type].includes(book)) { toast('이미 등록된 교재입니다.', 'warning'); return; }
+  DB.bookLibrary[type].push(book);
+  saveBookLibraryFb(type);
+  toast(`"${book}" 추가되었습니다.`, 'success');
+  showPage('settings');
+}
+function removeBookFromLib(type, book) {
+  if (!confirm(`"${book}"을 라이브러리에서 삭제할까요?`)) return;
+  if (!DB.bookLibrary || !Array.isArray(DB.bookLibrary[type])) return;
+  DB.bookLibrary[type] = DB.bookLibrary[type].filter(b => b !== book);
+  saveBookLibraryFb(type);
+  showPage('settings');
 }
 
 // 단일 휴무일 추가
@@ -3990,6 +4527,7 @@ function deleteStudent(studentId) {
   DB.assignments = DB.assignments.filter(a=>a.studentId!==studentId);
   DB.students    = DB.students.filter(s=>s.id!==studentId);
   if (DB.stuMemos && DB.stuMemos[studentId]) delete DB.stuMemos[studentId];
+  if (DB.stuPlans && DB.stuPlans[studentId]) delete DB.stuPlans[studentId];
   if (DB.attendance) {
     Object.keys(DB.attendance).forEach(date => {
       DB.attendance[date] = DB.attendance[date].filter(id => id !== studentId);
@@ -4086,6 +4624,8 @@ function openAddAssignModal(classId, studentId) {
   });
   document.querySelector('input[name="assign-type"][value="SV"]').checked = true;
   onTypeChange(); // voca-fields ON, sv-days-field ON, textbook-fields OFF 등
+  _lastPickedBook = '';
+  renderBookQuickSelect();
 
   openModal('modal-add-assign');
   _resetBatchState();
@@ -4138,6 +4678,8 @@ function onTypeChange() {
   if (svDaysEl) svDaysEl.style.display = isSV ? '' : 'none';
   // 교재로 바꾸면 종료일 min을 시작일로 동기화
   if (isTextbook) syncEndDateMin();
+  _lastPickedBook = '';
+  renderBookQuickSelect();
 }
 
 // 시작일이 바뀌면 종료일 min을 동기화
@@ -4443,8 +4985,8 @@ function openEditAssignModal(assignId) {
   if (warn) warn.style.display = 'none';
 
   openModal('modal-add-assign');
-
-  // ── 일괄 수정 대상 학생 목록 구성 ──────────────────────────
+  _lastPickedBook = '';
+  renderBookQuickSelect();
   const bulkSection   = document.getElementById('assign-bulk-section');
   const bulkList      = document.getElementById('assign-bulk-list');
   const bulkSelectAll = document.getElementById('bulk-select-all');
