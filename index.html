@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>지혜쌤 학원 LMS</title>
+<title>THEFIRST LMS</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
 
@@ -20,7 +20,7 @@
   --sb-bg:#1C2E26;
   --sb-hover:#243829;
   --sb-active:#3E7A5A;
-  --sb-text:#A8C4B0;
+  --sb-text:#FFFFFF;
   --sb-text2:#587A64;
   --blue:#2A6E4E;
   --blue-bg:#DFF2EA;
@@ -69,19 +69,19 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .sidebar::-webkit-scrollbar-thumb{background:#2A4A38;border-radius:2px}
 
 .sb-section{padding:10px 10px 4px}
-.sb-label{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sb-text2);padding:2px 4px;margin-bottom:5px;opacity:.7}
+.sb-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sb-text2);padding:2px 4px;margin-bottom:5px;opacity:.7}
 
 .sb-item{
   display:flex;align-items:center;gap:8px;
   padding:7px 8px;border-radius:7px;cursor:pointer;
   transition:background .12s;margin-bottom:1px;
-  font-size:11px;font-weight:500;color:var(--sb-text);
+  font-size:13px;font-weight:500;color:#FFFFFF;
 }
 .sb-item:hover{background:var(--sb-hover)}
 .sb-item.active{background:var(--sb-active);color:#fff}
-.sb-item.active .sb-item-icon{color:#9FE1CB;opacity:1}
-.sb-item.active .sb-item-icon{color:#9FE1CB;opacity:1}
-.sb-item-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;
+.sb-item.active .sb-item-icon{color:#FFFFFF;opacity:1}
+.sb-item.active .sb-item-icon{color:#FFFFFF;opacity:1}
+.sb-item-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0;
   color:var(--sb-text2);opacity:.85;transition:opacity .12s}
 .sb-item-badge{
   margin-left:auto;font-size:10px;font-weight:700;
@@ -95,13 +95,13 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   display:flex;align-items:center;gap:6px;
   padding:5px 8px;border-radius:6px;cursor:pointer;
   transition:background .12s;margin-bottom:1px;
-  font-size:10px;color:var(--sb-text2);font-weight:500;
+  font-size:12px;color:#FFFFFF;font-weight:500;
 }
 .sb-class-item:hover{background:var(--sb-hover);color:var(--sb-text)}
 .sb-class-item.active{background:var(--sb-active);color:#fff}
 .sb-class-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .sb-class-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sb-class-cnt{font-size:10px;color:var(--sb-text2);flex-shrink:0}
+.sb-class-cnt{font-size:11px;color:rgba(255,255,255,.7);flex-shrink:0}
 
 .sb-divider{height:0.5px;background:rgba(255,255,255,.07);margin:6px 10px 8px}
 .sb-add-class{
@@ -480,12 +480,13 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .stu-check-badge{font-size:10px;color:var(--text3)}
 .stu-selected-count{font-size:11px;font-weight:700;margin-top:5px;color:var(--blue)}
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
 <body class="class-colors">
 
 <!-- 헤더 -->
 <header class="app-header">
-  <i class="ti ti-school" style="font-size:18px;color:#9FE1CB" aria-hidden="true"></i>
+  <i class="ti ti-school hdr-logo" style="font-size:18px" aria-hidden="true"></i>
   <span class="hdr-title">학원 학습 관리 시스템</span>
   <span class="hdr-badge">v1.0</span>
   <div class="hdr-right">
@@ -499,17 +500,17 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="sb-section">
     <div class="sb-label">메뉴</div>
     <div class="sb-item active" onclick="showPage('dashboard')" id="nav-dashboard">
-      <i class="ti ti-layout-dashboard sb-item-icon" aria-hidden="true"></i>전체 현황
+      <i class="ti ti-layout-grid sb-item-icon" aria-hidden="true"></i>전체 현황
     </div>
     <div class="sb-item" onclick="showPage('student')" id="nav-student">
       <i class="ti ti-users sb-item-icon" aria-hidden="true"></i>학생관리
       <span class="sb-item-badge" id="nav-student-cnt">0</span>
     </div>
     <div class="sb-item" onclick="showPage('attendance')" id="nav-attendance">
-      <i class="ti ti-calendar-check sb-item-icon" aria-hidden="true"></i>출석관리
+      <i class="ti ti-calendar-stats sb-item-icon" aria-hidden="true"></i>출석관리
     </div>
     <div class="sb-item" onclick="showPage('assign')" id="nav-assign">
-      <i class="ti ti-clipboard-text sb-item-icon" aria-hidden="true"></i>과제설정
+      <i class="ti ti-lock sb-item-icon" aria-hidden="true"></i>과제설정
     </div>
     <div class="sb-item" onclick="showPage('stuDetail')" id="nav-stuDetail">
       <i class="ti ti-user-circle sb-item-icon" aria-hidden="true"></i>학생개별관리
@@ -518,7 +519,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       <i class="ti ti-chart-bar sb-item-icon" aria-hidden="true"></i>반별학습현황
     </div>
     <div class="sb-item" onclick="showPage('history')" id="nav-history">
-      <i class="ti ti-history sb-item-icon" aria-hidden="true"></i>반별학습이력
+      <i class="ti ti-clock-hour-3 sb-item-icon" aria-hidden="true"></i>반별학습이력
     </div>
     <div class="sb-item" onclick="showPage('voca')" id="nav-voca">
       <i class="ti ti-vocabulary sb-item-icon" aria-hidden="true"></i>보카학습이력
