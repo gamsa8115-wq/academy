@@ -1639,6 +1639,7 @@ const BOOK_LIBRARY_DEFAULT = {
 // ══════════════════════════════════════════════════════════
 let currentPage = 'dashboard';
 let currentClassFilter = null;
+let currentLibTab = 'SV'; // 교재 라이브러리 현재 탭
 
 function showPage(page, classId) {
   currentPage = page;
@@ -4388,14 +4389,14 @@ function renderSettingsPage() {
         </div>
         <div class="tab-bar" style="margin-bottom:14px">
           ${['SV','HV','MAIN','SUB'].map((t, i) => `
-            <button class="tab-btn ${i===0?'active':''}" id="lib-tab-${t}"
+            <button class="tab-btn ${t===currentLibTab?'active':''}" id="lib-tab-${t}"
               onclick="showLibTab('${t}',this)">${TYPE_LABELS[t]}</button>
           `).join('')}
         </div>
         ${['SV','HV','MAIN','SUB'].map((t, i) => {
-          const books = (DB.bookLibrary && Array.isArray(DB.bookLibrary[t])) ? DB.bookLibrary[t] : [];
+          const books = (DB.bookLibrary && Array.isArray(DB.bookLibrary[t])) ? [...DB.bookLibrary[t]].sort((a,b)=>a.localeCompare(b,'ko-KR',{numeric:true})) : [];
           return `
-          <div id="lib-body-${t}" style="${i===0?'':'display:none'}">
+          <div id="lib-body-${t}" style="${t===currentLibTab?'':'display:none'}">
             <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;min-height:32px">
               ${books.length === 0
                 ? `<span style="font-size:12px;color:var(--text3)">등록된 교재 없음</span>`
@@ -4436,6 +4437,7 @@ function renderSettingsPage() {
 
 // ── 교재 라이브러리 관리 ──────────────────────────────────────
 function showLibTab(type, btn) {
+  currentLibTab = type; // 현재 탭 기억
   ['SV','HV','MAIN','SUB'].forEach(t => {
     const body = document.getElementById('lib-body-' + t);
     const tab  = document.getElementById('lib-tab-'  + t);
@@ -4451,6 +4453,9 @@ function addBookToLib(type) {
   if (!Array.isArray(DB.bookLibrary[type])) DB.bookLibrary[type] = [];
   if (DB.bookLibrary[type].includes(book)) { toast('이미 등록된 교재입니다.', 'warning'); return; }
   DB.bookLibrary[type].push(book);
+  // 가나다(한글) + 알파벳 순 자동 정렬
+  DB.bookLibrary[type].sort((a, b) => a.localeCompare(b, 'ko-KR', {numeric: true}));
+  currentLibTab = type; // 추가한 탭으로 유지
   saveBookLibraryFb(type);
   toast(`"${book}" 추가되었습니다.`, 'success');
   showPage('settings');
@@ -4459,6 +4464,7 @@ function removeBookFromLib(type, book) {
   if (!confirm(`"${book}"을 라이브러리에서 삭제할까요?`)) return;
   if (!DB.bookLibrary || !Array.isArray(DB.bookLibrary[type])) return;
   DB.bookLibrary[type] = DB.bookLibrary[type].filter(b => b !== book);
+  currentLibTab = type; // 삭제한 탭으로 유지
   saveBookLibraryFb(type);
   showPage('settings');
 }
