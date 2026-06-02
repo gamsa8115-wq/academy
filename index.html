@@ -3,43 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>THEFIRST LMS</title>
+<title>학원 학습 관리 시스템</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#F2F5EF;
+  --bg:#EDEAE0;
   --surface:#FFFFFF;
-  --surface2:#EBF0E6;
-  --border:#D8E2D2;
-  --border2:#B8CCB0;
-  --text:#141E18;
-  --text2:#3E5A48;
-  --text3:#7A9884;
-  --sb-bg:#1C2E26;
-  --sb-hover:#243829;
-  --sb-active:#3E7A5A;
-  --sb-text:#FFFFFF;
-  --sb-text2:#587A64;
-  --blue:#2A6E4E;
-  --blue-bg:#DFF2EA;
-  --blue-mid:#3E7A5A;
-  --green:#2A6E3C;
-  --green-bg:#DFF2E4;
-  --green-mid:#3E7A5A;
+  --surface2:#F0EEE8;
+  --border:#E2DFD6;
+  --border2:#CBC8BE;
+  --text:#1A1A18;
+  --text2:#5A5955;
+  --text3:#97948E;
+  --sb-bg:#2E2E2C;
+  --sb-hover:#3C3C3A;
+  --sb-active:#CC1060;
+  --sb-text:#C8C6BF;
+  --sb-text2:#7A7873;
+  --blue:#1A5878;
+  --blue-bg:#E0EFF6;
+  --blue-mid:#CC1060;
+  --green:#7D9020;
+  --green-bg:#EEF3E0;
+  --green-mid:#7D9020;
   --red:#B83224;
-  --red-bg:#FCECEA;
-  --amber:#8A5E00;
-  --amber-bg:#FEF4DC;
-  --amber-mid:#C88A00;
+  --red-bg:#FCF0EE;
+  --amber:#8F5409;
+  --amber-bg:#FEF5E7;
+  --amber-mid:#D4820F;
   --purple:#4A3B8C;
   --purple-bg:#EEEDFE;
   --hh:56px;
   --sw:260px;
   --r:10px;
-  --sh:0 1px 3px rgba(20,40,28,.06);
-  --sh-md:0 4px 16px rgba(20,40,28,.10);
+  --sh:0 1px 4px rgba(0,0,0,.07);
+  --sh-md:0 4px 16px rgba(0,0,0,.10);
 }
 
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;min-height:100vh}
@@ -49,43 +49,40 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   position:fixed;top:0;left:0;right:0;height:var(--hh);
   background:var(--sb-bg);z-index:200;
   display:flex;align-items:center;padding:0 16px;gap:12px;
-  border-bottom:1px solid #162218;
+  border-bottom:1px solid #2A2A27;
 }
 .hdr-logo{font-size:18px}
 .hdr-title{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.01em}
-.hdr-badge{font-size:10px;font-weight:700;color:#5AAA72;background:#1A3022;border:1px solid #2A5A3C;border-radius:5px;padding:2px 8px}
+.hdr-badge{font-size:10px;font-weight:700;color:#6A9E3A;background:#1A2A14;border:1px solid #3A5A28;border-radius:5px;padding:2px 8px}
 .hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px}
 .hdr-save-status{font-size:11px;color:var(--sb-text2)}
-.hdr-save-status.saved{color:#5AAA72}
+.hdr-save-status.saved{color:#6A9E3A}
 .hdr-save-status.saving{color:var(--amber-mid)}
 
 /* ── 사이드바 ── */
 .sidebar{
   position:fixed;top:var(--hh);left:0;bottom:0;width:var(--sw);
   background:var(--sb-bg);overflow-y:auto;z-index:100;
-  border-right:1px solid #162218;display:flex;flex-direction:column;
+  border-right:1px solid #2A2A27;display:flex;flex-direction:column;
 }
 .sidebar::-webkit-scrollbar{width:3px}
-.sidebar::-webkit-scrollbar-thumb{background:#2A4A38;border-radius:2px}
+.sidebar::-webkit-scrollbar-thumb{background:#4A2030;border-radius:2px}
 
-.sb-section{padding:10px 10px 4px}
-.sb-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sb-text2);padding:2px 4px;margin-bottom:5px;opacity:.7}
+.sb-section{padding:12px 10px 6px}
+.sb-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sb-text2);padding:0 4px;margin-bottom:6px}
 
 .sb-item{
   display:flex;align-items:center;gap:8px;
-  padding:7px 8px;border-radius:7px;cursor:pointer;
-  transition:background .12s;margin-bottom:1px;
-  font-size:13px;font-weight:500;color:#FFFFFF;
+  padding:8px 8px;border-radius:8px;cursor:pointer;
+  transition:background .12s;margin-bottom:2px;
+  font-size:12px;font-weight:600;color:var(--sb-text);
 }
 .sb-item:hover{background:var(--sb-hover)}
 .sb-item.active{background:var(--sb-active);color:#fff}
-.sb-item.active .sb-item-icon{color:#FFFFFF;opacity:1}
-.sb-item.active .sb-item-icon{color:#FFFFFF;opacity:1}
-.sb-item-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0;
-  color:var(--sb-text2);opacity:.85;transition:opacity .12s}
+.sb-item-icon{font-size:14px;width:20px;text-align:center;flex-shrink:0}
 .sb-item-badge{
   margin-left:auto;font-size:10px;font-weight:700;
-  background:#3E7A5A;color:#fff;border-radius:10px;
+  background:#2B7FD4;color:#fff;border-radius:10px;
   padding:1px 7px;min-width:20px;text-align:center;
 }
 .sb-item-badge.red{background:#B83224}
@@ -93,24 +90,23 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .sb-class-list{padding:0 10px 8px}
 .sb-class-item{
   display:flex;align-items:center;gap:6px;
-  padding:5px 8px;border-radius:6px;cursor:pointer;
+  padding:6px 8px;border-radius:7px;cursor:pointer;
   transition:background .12s;margin-bottom:1px;
-  font-size:12px;color:#FFFFFF;font-weight:500;
+  font-size:11px;color:var(--sb-text2);
 }
 .sb-class-item:hover{background:var(--sb-hover);color:var(--sb-text)}
 .sb-class-item.active{background:var(--sb-active);color:#fff}
 .sb-class-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .sb-class-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sb-class-cnt{font-size:11px;color:rgba(255,255,255,.7);flex-shrink:0}
+.sb-class-cnt{font-size:10px;color:var(--sb-text2);flex-shrink:0}
 
-.sb-divider{height:0.5px;background:rgba(255,255,255,.07);margin:6px 10px 8px}
 .sb-add-class{
   display:flex;align-items:center;gap:6px;
   padding:6px 8px;border-radius:7px;cursor:pointer;
-  font-size:11px;color:var(--sb-text2);border:1px dashed #2E4A38;
+  font-size:11px;color:var(--sb-text2);border:1px dashed #3A3A37;
   margin:0 10px 12px;transition:all .15s;
 }
-.sb-add-class:hover{border-color:#4A7058;color:var(--sb-text)}
+.sb-add-class:hover{border-color:#5A5A57;color:var(--sb-text)}
 
 /* ── 메인 ── */
 .main{margin-left:var(--sw);padding-top:var(--hh);min-height:100vh}
@@ -122,22 +118,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .page-sub{font-size:12px;color:var(--text3)}
 
 /* ── 탭 ── */
-.tab-bar{
-  display:inline-flex;gap:2px;margin-bottom:22px;
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:10px;padding:3px;
-}
+.tab-bar{display:flex;gap:2px;margin-bottom:22px;border-bottom:2px solid var(--border);padding-bottom:0}
 .tab-btn{
-  padding:5px 15px;font-size:12px;font-weight:500;cursor:pointer;
+  padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;
   border:none;background:none;color:var(--text3);font-family:inherit;
-  border-radius:7px;transition:all .15s;letter-spacing:-.01em;
-  white-space:nowrap;
+  border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;
 }
-.tab-btn:hover{color:var(--text2);background:rgba(255,255,255,.6)}
-.tab-btn.active{
-  color:var(--blue);background:var(--surface);font-weight:600;
-  box-shadow:0 1px 4px rgba(20,50,32,.10);
-}
+.tab-btn:hover{color:var(--text2)}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}
 
 /* ── 카드 ── */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh)}
@@ -153,9 +141,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   white-space:nowrap;
 }
 .btn-primary{background:var(--blue-mid);color:#fff}
-.btn-primary:hover{background:#2A5A3E}
+.btn-primary:hover{background:#AA0050}
 .btn-success{background:var(--green-mid);color:#fff}
-.btn-success:hover{background:#2A5A3E}
+.btn-success:hover{background:#5D6C18}
 .btn-danger{background:none;color:var(--red);border:1px solid #F5C4C0}
 .btn-danger:hover{background:var(--red-bg)}
 .btn-ghost{background:none;color:var(--text2);border:1px solid var(--border2)}
@@ -171,7 +159,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   background:var(--surface);font-family:inherit;outline:none;
   transition:border .15s;
 }
-.form-input:focus,.form-select:focus{border-color:var(--blue-mid);box-shadow:0 0 0 3px rgba(62,122,90,.12)}
+.form-input:focus,.form-select:focus{border-color:var(--blue-mid);box-shadow:0 0 0 3px rgba(43,127,212,.1)}
 .form-input::placeholder{color:var(--text3)}
 .form-row{display:grid;gap:12px}
 .form-row-2{grid-template-columns:1fr 1fr}
@@ -205,15 +193,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .student-tag-remove:hover{background:var(--red-bg);color:var(--red)}
 
 /* ── 과제 유형 라벨 ── */
-.type-chip{
-  display:inline-flex;align-items:center;padding:3px 9px;
-  border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap;
-  letter-spacing:.01em;border:1px solid transparent;
-}
-.type-sv{background:#E8EEFA;color:#3A5A9A;border-color:#A8B8E8}
-.type-hv{background:#FEF5DC;color:#A86820;border-color:#E8D890}
-.type-main{background:#DFF2E4;color:#2A6E3C;border-color:#B8DCC4}
-.type-sub{background:#F5E8E0;color:#7A3020;border-color:#E8CCC0}
+.type-chip{display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap}
+.type-sv{background:#FAE6F0;color:#CC1060}
+.type-hv{background:#E0EFF6;color:#1A5878}
+.type-main{background:#EEF3E0;color:#7D9020}
+.type-sub{background:#F5E8EC;color:#7A1030}
 
 /* ── 과제 목록 테이블 ── */
 .assign-table{width:100%;border-collapse:collapse}
@@ -228,17 +212,13 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 /* ── 반별 이력 테이블 ── */
 .history-wrap{overflow:auto;max-height:calc(100vh - 260px);border-radius:0 0 var(--r) var(--r)}
-.hf-btn{
-  font-size:10px;font-weight:600;padding:4px 11px;
-  border-radius:20px;cursor:pointer;transition:all .15s;font-family:inherit;
-  letter-spacing:.01em;border:1px solid transparent;
-}
-.hf-btn.hf-off{opacity:.3;text-decoration:line-through;filter:grayscale(.5)}
+.hf-btn{font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;cursor:pointer;transition:opacity .15s;font-family:inherit}
+.hf-btn.hf-off{opacity:.35;text-decoration:line-through}
 /* 학원 일정 달력 */
 .ep-test{background:#FAECE7;color:#993C1D}
-.ep-repeat{background:#DFF2EA;color:#2A6E8A}
-.ep-event{background:#DFF2E4;color:#2A6E3C}
-.ep-memo{background:#EBF0E6;color:#4A6050}
+.ep-repeat{background:#E6F1FB;color:#185FA5}
+.ep-event{background:#EAF3DE;color:#3B6D11}
+.ep-memo{background:#F1EFE8;color:#5F5E5A}
 .cal-dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:0.5px solid var(--border)}
 .cal-dow>div{text-align:center;font-size:10px;font-weight:700;padding:5px 0;color:var(--text3)}
 .cal-dow>div:first-child{color:#A32D2D}
@@ -247,7 +227,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .cal-day{border-right:0.5px solid var(--border);border-bottom:0.5px solid var(--border);min-height:60px;padding:4px;cursor:default}
 .cal-day:nth-child(7n){border-right:none}
 .cal-day.cal-other{background:var(--bg)}
-.cal-day.cal-today .cal-dn{background:#3E7A5A;color:#DFF2EA;border-radius:50%}
+.cal-day.cal-today .cal-dn{background:#185FA5;color:#E6F1FB;border-radius:50%}
 .cal-dn{font-size:11px;font-weight:500;color:var(--text);width:20px;height:20px;display:flex;align-items:center;justify-content:center;margin-bottom:2px}
 .cal-day.cal-other .cal-dn{color:var(--text3)}
 .cal-day.cal-sun .cal-dn{color:#A32D2D}
@@ -257,79 +237,75 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .ev-leg-item{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text2)}
 .ev-leg-dot{width:7px;height:7px;border-radius:2px}
 .history-table{border-collapse:separate;border-spacing:0;white-space:nowrap;font-size:12px}
-/* 공통 헤더 */
+/* 공통 헤더 셀 */
 .history-table th{
-  padding:7px 10px;font-size:9px;font-weight:700;color:var(--text3);
-  text-transform:uppercase;letter-spacing:.06em;
-  border-bottom:0.5px solid var(--border);border-right:0.5px solid var(--border);
-  background:var(--surface2);position:sticky;top:0;z-index:3;
+  padding:7px 10px;font-size:10px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.04em;
+  border-bottom:1px solid var(--border2);border-right:1px solid var(--border);
+  background:#F8F7F3;position:sticky;top:0;z-index:3;
   text-align:center;
 }
-/* 날짜 헤더 1행 (좌+상 고정) */
+/* 1행: 날짜 헤더 (좌+상 고정) */
 .history-table th.th-date-r1{
   text-align:left;position:sticky;left:0;top:0;z-index:6;
-  background:var(--surface2);min-width:72px;
-  border-right:1.5px solid var(--border2);
-  border-bottom:none;padding:0 10px;
+  background:#F0EEE8;min-width:110px;
+  border-right:2px solid var(--border2);
+  border-bottom:none;
+  padding:0 10px;
 }
-/* 날짜 헤더 2행 (좌+상 고정) */
+/* 2행: 날짜/요일 헤더 (좌+상 고정) */
 .history-table th.th-date-r2{
   text-align:left;position:sticky;left:0;z-index:5;
-  background:var(--surface2);min-width:72px;
-  border-right:1.5px solid var(--border2);
-  border-top:none;border-bottom:2px solid var(--border2);top:34px;
+  background:#F0EEE8;min-width:110px;
+  border-right:2px solid var(--border2);
+  border-top:none;
+  border-bottom:2px solid var(--border2);
+  top:34px;
 }
-/* 학생 이름 헤더 (1행) */
+/* 1행 일반 헤더 (이름) */
 .history-table th.th-name{
-  position:sticky;top:0;z-index:3;border-bottom:none;border-top:0;
+  position:sticky;top:0;z-index:3;
+  border-bottom:none;
+  border-top:0;
   border-left:2px solid var(--border2);
-  font-size:12px;font-weight:600;color:var(--text);
-  background:var(--surface);padding:7px 12px;
-  height:34px;box-sizing:border-box;text-align:left;
+  font-size:12px;font-weight:700;color:var(--text);
+  background:#F8F7F3;padding:6px 10px;
+  height:34px;box-sizing:border-box;
 }
-/* 유형 서브헤더 (2행) */
-.history-table th.th-stu-first{border-left:2px solid var(--border2) !important}
+/* 2행 일반 헤더 (과목) */
 .history-table th.th-type{
   position:sticky;top:34px;z-index:3;
-  min-width:92px;font-size:9px;font-weight:700;
-  border-top:none;border-bottom:2px solid var(--border2);
-  padding:5px 8px;letter-spacing:.04em;
+  min-width:80px;font-size:10px;font-weight:700;
+  border-top:none;
+  border-bottom:2px solid var(--border2);
+  padding:4px 6px;letter-spacing:.03em;
 }
-/* 유형별: solid 배경 대신 연한 배경 + 상단 컬러 라인 */
-.history-table th.th-type.type-sv{background:#E8EEFA;color:#3A5A9A;border-top:2px solid #3A5A9A}
-.history-table th.th-type.type-hv{background:#FEF5DC;color:#A86820;border-top:2px solid #A86820}
-.history-table th.th-type.type-main{background:#EBF5EE;color:#3E7A5A;border-top:2px solid #3E7A5A}
-.history-table th.th-type.type-sub{background:#F5EDEA;color:#8A3828;border-top:2px solid #8A3828}
-/* 데이터 셀 */
-.history-table td{
-  padding:5px 8px;border-bottom:0.5px solid var(--border);
-  border-right:0.5px solid var(--border);
-  border-top:0;text-align:center;min-width:92px;
-}
-/* 첫 행 */
+.history-table th.th-type.type-sv{background:#CC1060;color:#fff}
+.history-table th.th-type.type-hv{background:#1A5878;color:#fff}
+.history-table th.th-type.type-main{background:#7D9020;color:#fff}
+.history-table th.th-type.type-sub{background:#7A1030;color:#fff}
+/* 데이터 셀 — border-separate 방식: 각 셀 독립 border */
+.history-table td{padding:6px 8px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);border-top:0;text-align:center;min-width:78px}
+/* 첫 번째 데이터 행 상단 선 */
 .history-table tbody tr:first-child td{border-top:0}
-/* 날짜 열 */
+/* 날짜 열 (좌 고정) */
 .history-table td.td-date{
-  text-align:left;position:sticky;left:0;background:var(--surface2);z-index:2;
-  border-right:1.5px solid var(--border2);font-size:11px;color:var(--text2);
-  font-weight:500;padding:5px 10px;border-top:0;
+  text-align:left;position:sticky;left:0;background:#FAFAF8;z-index:2;
+  border-right:2px solid var(--border2);font-size:11px;color:var(--text2);
+  font-weight:600;padding:6px 10px;border-top:0;
 }
-/* 학생 구분: 첫 열마다 왼쪽 border 강조 */
-.history-table td.td-stu-first{border-left:2px solid var(--border2)}
-/* 행 hover */
-.history-table tr:hover td{background:#EBF5EE}
-.history-table tr:hover td.td-date{background:#E4EDE6}
-/* 셀 데이터 — 연한 배경 + 컬러 텍스트 */
-.history-table .cell-sv{background:#EEEFFA;color:#3A5A9A;font-size:10px;font-weight:600}
-.history-table .cell-hv{background:#FFFBEE;color:#A86820;font-size:10px;font-weight:600}
-.history-table .cell-main{background:#EEF8F1;color:#3E7A5A;font-size:10px;font-weight:600}
-.history-table .cell-sub{background:#FAF3F0;color:#8A3828;font-size:10px;font-weight:600}
+.history-table tr:hover td{background:#E8E5DB}
+.history-table tr:hover td.td-date{background:#EFEDE8}
+.history-table .cell-sv{background:#FAE6F0;color:#CC1060;font-size:11px;font-weight:600}
+.history-table .cell-hv{background:#E0EFF6;color:#1A5878;font-size:11px;font-weight:600}
+.history-table .cell-main{background:#EEF3E0;color:#7D9020;font-size:11px;font-weight:600}
+.history-table .cell-sub{background:#F5E8EC;color:#7A1030;font-size:11px;font-weight:600}
 
 /* ── 알림 ── */
 .alert{padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px}
-.alert-info{background:var(--blue-bg);color:var(--blue);border:1px solid #7DC4A0}
+.alert-info{background:var(--blue-bg);color:var(--blue);border:1px solid #A0C4F0}
 .alert-warning{background:var(--amber-bg);color:var(--amber);border:1px solid #FAC775}
-.alert-success{background:var(--green-bg);color:var(--green);border:1px solid #80C898}
+.alert-success{background:var(--green-bg);color:var(--green);border:1px solid #C0D880}
 
 /* ── 빈 상태 ── */
 .empty-state{text-align:center;padding:48px 20px;color:var(--text3)}
@@ -391,79 +367,28 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .stat-sub{font-size:11px;color:var(--text3)}
 
 /* ── 반 색상 ── */
-.class-colors{--c0:#3A8C64;--c1:#6A9E2A;--c2:#C8720A;--c3:#7A5BAA;--c4:#C84A3A;--c5:#2AAA8A;--c6:#C87820;--c7:#4A8A6A}
+.class-colors{--c0:#2B7FD4;--c1:#3D9A1A;--c2:#D4820F;--c3:#9B59B6;--c4:#E74C3C;--c5:#1ABC9C;--c6:#E67E22;--c7:#3498DB}
 
 
 /* ── 보카/교재 피벗 테이블 (학생이 열로 펼쳐지는 구조) ── */
 .pivot-wrap{overflow:auto;max-height:calc(100vh - 280px);border-radius:0 0 var(--r) var(--r)}
-.pivot-wrap::-webkit-scrollbar{width:8px;height:8px}
-.pivot-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
-.pivot-table{border-collapse:separate;border-spacing:3px;white-space:nowrap;font-size:12px}
-/* 공통 헤더 */
-.pivot-table th{
-  padding:8px 12px;font-size:10px;font-weight:600;letter-spacing:.04em;
-  border-bottom:0.5px solid var(--border);border-right:0.5px solid var(--border);
-  background:var(--surface2);position:sticky;top:0;z-index:3;text-align:center;
-  color:var(--text3);text-transform:uppercase;
-}
-/* 이력# 좌상단 고정 */
-.pivot-table th.pt-r1-fixed{
-  position:sticky;left:0;top:0;z-index:6;background:var(--surface2);
-  min-width:48px;text-align:center;border-right:1.5px solid var(--border2);
-  border-bottom:none;font-size:10px;font-weight:600;color:var(--text3);
-}
-.pivot-table th.pt-r2-fixed{
-  position:sticky;left:0;z-index:5;top:36px;background:var(--surface2);
-  min-width:48px;text-align:center;border-right:1.5px solid var(--border2);
-  border-bottom:2px solid var(--border2);
-}
-/* 학생 이름 헤더 */
-.pivot-table th.pt-stu-name{
-  position:sticky;top:0;z-index:3;
-  font-size:13px;font-weight:600;color:var(--text);
-  background:var(--surface);
-  border-left:2px solid var(--border2);border-bottom:none;
-  min-width:150px;padding:9px 14px;text-align:left;height:36px;
-}
-/* 수업V / 홈V 서브헤더 */
-.pivot-table th.pt-stu-type{
-  position:sticky;top:36px;z-index:3;min-width:150px;
-  font-size:9px;font-weight:700;letter-spacing:.05em;
-  border-bottom:2px solid var(--border2);padding:5px 12px;
-}
-/* 수업V: 연한 배경 + 상단 라인 */
-.pivot-table th.pt-sv-hdr{background:#E8EEFA;color:#3A5A9A;border-top:2px solid #3A5A9A}
-/* 홈V: 연한 배경 + 상단 라인 */
-.pivot-table th.pt-hv-hdr{background:#FEF5DC;color:#A86820;border-top:2px solid #A86820}
-/* 교재학습이력: 주교재 / 부교재 헤더 — 통일된 채도로 */
-.pivot-table th.pt-main-hdr{background:#CBE5D4;color:#2A6040;border-top:2px solid #3E7A5A}
-.pivot-table th.pt-sub-hdr {background:#E8CECA;color:#6A2818;border-top:2px solid #8A3828}
-/* 데이터 셀 */
-.pivot-table td{
-  padding:10px 12px;border:0.5px solid var(--border);border-radius:8px;
-  text-align:left;min-width:150px;font-size:12px;vertical-align:top;
-  background:var(--surface);
-}
-/* 이력# 번호 셀 */
-.pivot-table td.pt-num{
-  position:sticky;left:0;background:var(--surface2);z-index:2;
-  border:0.5px solid var(--border);border-radius:7px;
-  font-size:11px;color:var(--text3);font-weight:600;
-  padding:10px 8px;text-align:center;min-width:48px;
-}
-/* 빈 셀 */
-.pivot-table td.pt-empty{
-  text-align:center;color:var(--border2);font-size:16px;
-  background:var(--bg);border-color:var(--border);border-radius:7px;
-}
-/* hover */
-.pivot-table tr:hover td{background:var(--surface2)}
-.pivot-table tr:hover td.pt-num{background:#E4EDE6}
+.pivot-wrap::-webkit-scrollbar{width:4px;height:4px}
+.pivot-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.pivot-table{border-collapse:separate;border-spacing:2px;white-space:nowrap;font-size:13px}
+.pivot-table th{padding:9px 12px;font-size:11px;font-weight:700;border-bottom:1px solid var(--border2);border-right:1px solid var(--border);background:#F8F7F3;position:sticky;top:0;z-index:3;text-align:center}
+.pivot-table th.pt-r1-fixed{position:sticky;left:0;top:0;z-index:6;background:#F8F7F3;min-width:54px;text-align:center;border-right:2px solid var(--border2);border-bottom:2px solid var(--border2);font-size:11px;font-weight:700;color:var(--text3)}
+.pivot-table th.pt-r2-fixed{position:sticky;left:0;z-index:5;top:40px;background:#F8F7F3;min-width:54px;text-align:center;border-right:2px solid var(--border2);border-bottom:2px solid var(--border2)}
+.pivot-table th.pt-stu-name{position:sticky;top:0;z-index:3;font-size:14px;font-weight:800;color:var(--text);border-left:2px solid var(--border2);border-bottom:1px solid var(--border2);min-width:160px;padding:9px 14px}
+.pivot-table th.pt-stu-type{position:sticky;top:40px;z-index:3;min-width:150px;font-size:11px;font-weight:700;border-bottom:2px solid var(--border2);padding:6px 12px}
+.pivot-table td{padding:9px 11px;border:1px solid #E4E1DA;border-radius:7px;text-align:left;min-width:150px;font-size:12px;vertical-align:middle;background:#FFFFFF}
+.pivot-table td.pt-num{position:sticky;left:0;background:#F8F7F3;z-index:2;border:1px solid var(--border2);border-radius:7px;font-size:12px;color:var(--text2);font-weight:700;padding:10px 10px;text-align:center;min-width:54px}
+.pivot-table td.pt-empty{text-align:center;color:var(--border2);font-size:18px;background:#F8F7F5;border-color:#ECEAE6;border-radius:7px}
+.pivot-table tr:hover td{background:#F8F6F2}
+.pivot-table tr:hover td.pt-num{background:#EFEDE8}
 .assign-search-wrap{position:relative;margin-bottom:14px}
 .assign-search-wrap input{width:100%;max-width:280px;padding:7px 10px 7px 30px;border:1px solid var(--border2);border-radius:7px;font-size:12px;color:var(--text);background:var(--surface);font-family:inherit;outline:none;transition:border .15s}
-.assign-search-wrap input:focus{border-color:var(--blue-mid);box-shadow:0 0 0 3px rgba(62,122,90,.12)}
+.assign-search-wrap input:focus{border-color:var(--blue-mid);box-shadow:0 0 0 3px rgba(43,127,212,.1)}
 .assign-search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;color:var(--text3)}
-.chip-sm{display:inline-flex;align-items:center;font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border2);white-space:nowrap}
 
 /* ── 과제설정 다중선택 학생 목록 ── */
 .stu-check-wrap{border:1px solid var(--border2);border-radius:8px;overflow:hidden;max-height:200px;overflow-y:auto;background:var(--surface)}
@@ -480,13 +405,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .stu-check-badge{font-size:10px;color:var(--text3)}
 .stu-selected-count{font-size:11px;font-weight:700;margin-top:5px;color:var(--blue)}
 </style>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
 <body class="class-colors">
 
 <!-- 헤더 -->
 <header class="app-header">
-  <i class="ti ti-school hdr-logo" style="font-size:18px" aria-hidden="true"></i>
+  <span class="hdr-logo">🏫</span>
   <span class="hdr-title">학원 학습 관리 시스템</span>
   <span class="hdr-badge">v1.0</span>
   <div class="hdr-right">
@@ -500,38 +424,37 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="sb-section">
     <div class="sb-label">메뉴</div>
     <div class="sb-item active" onclick="showPage('dashboard')" id="nav-dashboard">
-      <i class="ti ti-layout-grid sb-item-icon" aria-hidden="true"></i>전체 현황
+      <span class="sb-item-icon">🏠</span>전체 현황
     </div>
     <div class="sb-item" onclick="showPage('student')" id="nav-student">
-      <i class="ti ti-users sb-item-icon" aria-hidden="true"></i>학생관리
+      <span class="sb-item-icon">👥</span>학생관리
       <span class="sb-item-badge" id="nav-student-cnt">0</span>
     </div>
     <div class="sb-item" onclick="showPage('attendance')" id="nav-attendance">
-      <i class="ti ti-calendar-stats sb-item-icon" aria-hidden="true"></i>출석관리
+      <span class="sb-item-icon">✅</span>출석관리
     </div>
     <div class="sb-item" onclick="showPage('assign')" id="nav-assign">
-      <i class="ti ti-lock sb-item-icon" aria-hidden="true"></i>과제설정
+      <span class="sb-item-icon">📝</span>과제설정
     </div>
     <div class="sb-item" onclick="showPage('stuDetail')" id="nav-stuDetail">
-      <i class="ti ti-user-circle sb-item-icon" aria-hidden="true"></i>학생개별관리
+      <span class="sb-item-icon">👤</span>학생개별관리
     </div>
     <div class="sb-item" onclick="showPage('status')" id="nav-status">
-      <i class="ti ti-chart-bar sb-item-icon" aria-hidden="true"></i>반별학습현황
+      <span class="sb-item-icon">📊</span>반별학습현황
     </div>
     <div class="sb-item" onclick="showPage('history')" id="nav-history">
-      <i class="ti ti-clock-hour-3 sb-item-icon" aria-hidden="true"></i>반별학습이력
+      <span class="sb-item-icon">📋</span>반별학습이력
     </div>
     <div class="sb-item" onclick="showPage('voca')" id="nav-voca">
-      <i class="ti ti-vocabulary sb-item-icon" aria-hidden="true"></i>보카학습이력
+      <span class="sb-item-icon">📚</span>보카학습이력
     </div>
     <div class="sb-item" onclick="showPage('textbook')" id="nav-textbook">
-      <i class="ti ti-book sb-item-icon" aria-hidden="true"></i>교재학습이력
+      <span class="sb-item-icon">📖</span>교재학습이력
     </div>
     <div class="sb-item" onclick="showPage('settings')" id="nav-settings">
-      <i class="ti ti-settings sb-item-icon" aria-hidden="true"></i>학원 설정
+      <span class="sb-item-icon">⚙️</span>학원 설정
     </div>
   </div>
-  <div class="sb-divider"></div>
   <div class="sb-section">
     <div class="sb-label">반 목록</div>
     <div id="sb-class-list"></div>
@@ -1418,7 +1341,7 @@ function genId() {
 }
 
 // 반 색상 팔레트
-const CLASS_COLORS = ['#3E7A5A','#3D9A1A','#C88A00','#9B59B6','#E74C3C','#1ABC9C','#E67E22','#3498DB'];
+const CLASS_COLORS = ['#2B7FD4','#3D9A1A','#D4820F','#9B59B6','#E74C3C','#1ABC9C','#E67E22','#3498DB'];
 function getClassColor(idx) { return CLASS_COLORS[idx % CLASS_COLORS.length]; }
 
 // ── 앱 부트스트랩 ─────────────────────────────────────────
@@ -1780,7 +1703,7 @@ function renderDashboard() {
   // ── 알림 스타일 정의 ────────────────────────────────────
   const LEVEL_STYLE = {
     today:    { bg:'#FCF0EE', border:'#F5C4C0', badge:'#B83224', badgeBg:'#FCF0EE', label:'오늘 종료', icon:'🚨' },
-    tomorrow: { bg:'#FEF4DC', border:'#FAC775', badge:'#8A5E00', badgeBg:'#FEF4DC', label:'내일 종료', icon:'⚠️' },
+    tomorrow: { bg:'#FEF5E7', border:'#FAC775', badge:'#8F5409', badgeBg:'#FEF5E7', label:'내일 종료', icon:'⚠️' },
     soon:     { bg:'#FFFDE7', border:'#FDD835', badge:'#7A6000', badgeBg:'#FFFDE7', label:'곧 종료',  icon:'📅' },
   };
 
@@ -2307,13 +2230,13 @@ function renderAttendancePage() {
   // ── 테이블 헤더
   const theadHTML = `
     <tr>
-      <th style="position:sticky;left:0;top:0;z-index:6;background:#EFF4EC;
+      <th style="position:sticky;left:0;top:0;z-index:6;background:#F8F7F3;
         min-width:90px;padding:10px 14px;text-align:left;font-size:12px;font-weight:700;
         color:var(--text2);border-right:2px solid var(--border2);border-bottom:2px solid var(--border2)">
         학생
       </th>
       ${dateLabels.map(x => {
-        const bg = x.isToday ? '#E0EFF6' : x.isStudy ? '#EFF4EC' : '#E8F0EA';
+        const bg = x.isToday ? '#E0EFF6' : x.isStudy ? '#F8F7F3' : '#F0EEE8';
         const col = x.isToday ? 'var(--blue)' : x.isStudy ? 'var(--text2)' : 'var(--text3)';
         const dayCol = x.isToday ? 'var(--blue-mid)' : 'var(--text3)';
         return `<th style="position:sticky;top:0;z-index:3;background:${bg};
@@ -2324,7 +2247,7 @@ function renderAttendancePage() {
           ${!x.isStudy ? `<div style="font-size:9px;color:var(--text3)">휴무</div>` : ''}
         </th>`;
       }).join('')}
-      <th style="position:sticky;top:0;z-index:3;background:#EFF4EC;
+      <th style="position:sticky;top:0;z-index:3;background:#F8F7F3;
         min-width:80px;padding:10px 14px;text-align:center;
         border-bottom:2px solid var(--border2);border-left:2px solid var(--border2);
         font-size:11px;font-weight:700;color:var(--text2)">
@@ -2347,7 +2270,7 @@ function renderAttendancePage() {
     const cells = dateLabels.map(x => {
       if (!x.isStudy) {
         // 휴무일: 회색 배경, 클릭 불가
-        return `<td style="background:#E8F0EA;border-left:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center;padding:8px">
+        return `<td style="background:#F0EEE8;border-left:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center;padding:8px">
           <span style="font-size:16px;color:var(--border2)">—</span>
         </td>`;
       }
@@ -2366,7 +2289,7 @@ function renderAttendancePage() {
       // 클릭 가능: 출석(O)/결석(X) 토글 — CSS 박스형
       const btnStyle = isAbsent
         ? 'background:#FCE4E4;color:#C0392B;border:1px solid #F5C4C0;border-radius:6px;font-size:12px;font-weight:700;padding:4px 10px;display:inline-block;min-width:36px'
-        : 'background:#DFF2E4;color:#2E7D32;border:1px solid #C8E6C9;border-radius:6px;font-size:12px;font-weight:700;padding:4px 10px;display:inline-block;min-width:36px';
+        : 'background:#EEF3E0;color:#2E7D32;border:1px solid #C8E6C9;border-radius:6px;font-size:12px;font-weight:700;padding:4px 10px;display:inline-block;min-width:36px';
       return `<td style="background:${bg};border-left:1px solid var(--border);border-bottom:1px solid var(--border);
         text-align:center;padding:6px 8px;cursor:pointer;transition:background .1s"
         onclick="toggleAttendance('${stu.id}','${x.d}')"
@@ -2490,11 +2413,11 @@ function buildMonthlyAbsenceCard(cls, students) {
   }).join('');
 
   const thead = `<tr>
-    <th style="background:#EFF4EC;padding:9px 14px;text-align:left;font-size:12px;
+    <th style="background:#F8F7F3;padding:9px 14px;text-align:left;font-size:12px;
       font-weight:700;color:var(--text2);border-bottom:2px solid var(--border2)">학생</th>
-    ${monthData.map(m=>`<th style="background:#EFF4EC;padding:9px 12px;text-align:center;
+    ${monthData.map(m=>`<th style="background:#F8F7F3;padding:9px 12px;text-align:center;
       font-size:12px;font-weight:700;color:var(--text2);
-      border-bottom:2px solid var(--border2);border-left:1px solid var(--border);min-width:72px">
+      border-bottom:2px solid var(--border2);border-left:1px solid var(--border);min-width:100px">
       ${m.year}년 ${m.month}월<br>
       <span style="font-size:10px;font-weight:400;color:var(--text3)">(학습일 ${m.studyDays.length}일)</span>
     </th>`).join('')}
@@ -2642,12 +2565,12 @@ function renderAssignPage() {
               ? (a.sets ? getLastStudyDate(a.startDate, a.sets, a.type==='SV' ? (a.studyDays||null) : null) : '—')
               : (a.endDate || null);
 
-            const chipStart = `<span style="background:#E8F0EA;color:#5A5955;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">${a.startDate} 시작</span>`;
+            const chipStart = `<span style="background:#F0EEE8;color:#5A5955;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">${a.startDate} 시작</span>`;
             const chipEnd = isTextbook
               ? (endDate
-                  ? `<span style="background:#DFF2E4;color:#3E7A5A;font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;border:1px solid #B8DCC4">~ ${endDate} 완료</span>`
-                  : `<span style="background:#DFF2E4;color:#3E7A5A;font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;border:1px solid #B8DCC4">진행중</span>`)
-              : `<span style="background:#E8F0EA;color:#5A5955;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">~ ${endDate}</span>`;
+                  ? `<span style="background:#EEF3E0;color:#7D9020;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">~ ${endDate} 완료</span>`
+                  : `<span style="background:#FEF5E7;color:#8F5409;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">진행중</span>`)
+              : `<span style="background:#F0EEE8;color:#5A5955;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">~ ${endDate}</span>`;
 
             const endDateBtn = isTextbook
               ? `<button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:10px"
@@ -2660,9 +2583,9 @@ function renderAssignPage() {
             if (isVoca) {
               extraChips = [
                 a.sets    ? `<span style="background:#EEF0FF;color:#3B3FA0;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">${a.sets}세트</span>` : '',
-                a.perSet  ? `<span style="background:#B8D8EC;color:#2A6E8A;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">1set ${a.perSet}</span>` : '',
-                a.memorize? `<span style="background:#DFF2E4;color:#3E7A5A;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">암기 ${a.memorize}</span>` : '',
-                a.recall  ? `<span style="background:#B8D8EC;color:#2A6E8A;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">리콜 ${a.recall}</span>` : '',
+                a.perSet  ? `<span style="background:#B8D8EC;color:#1A5878;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">1set ${a.perSet}</span>` : '',
+                a.memorize? `<span style="background:#EEF3E0;color:#7D9020;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">암기 ${a.memorize}</span>` : '',
+                a.recall  ? `<span style="background:#B8D8EC;color:#1A5878;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">리콜 ${a.recall}</span>` : '',
                 a.test    ? `<span style="background:#FCF0EE;color:#AA1050;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">테스트 ${a.test}점${a.testType ? ' · '+a.testType : ''}</span>` : '',
               ].filter(Boolean).join('');
             }
@@ -2799,9 +2722,9 @@ function renderAssignTypeView(showClasses) {
   const today      = formatDate(new Date());
   const TYPE_ORDER = ['SV','HV','MAIN','SUB'];
   const TYPE_BG    = {SV:'#FFFCF8', HV:'#F5F9FF', MAIN:'#F5FDF0', SUB:'#FFF8FB'};
-  const TYPE_COL   = {SV:'#3E7A5A', HV:'#2A6E8A', MAIN:'#3E7A5A', SUB:'#7A3020'};
-  const TYPE_PCTBG = {SV:'#F4C0D8', HV:'#B8D8EC', MAIN:'#DFF2E4', SUB:'#F5E8EC'};
-  const TYPE_BORD  = {SV:'#E8A0C0', HV:'#A0C4F0', MAIN:'#B8DCC4', SUB:'#D8A0B8'};
+  const TYPE_COL   = {SV:'#CC1060', HV:'#1A5878', MAIN:'#7D9020', SUB:'#7A1030'};
+  const TYPE_PCTBG = {SV:'#F4C0D8', HV:'#B8D8EC', MAIN:'#D8E8B0', SUB:'#F5E8EC'};
+  const TYPE_BORD  = {SV:'#E8A0C0', HV:'#A0C4F0', MAIN:'#C0D880', SUB:'#D8A0B8'};
 
   const allStudents = showClasses.flatMap(cls =>
     getStudentsByClass(cls.id).map(stu => ({...stu, clsId: cls.id}))
@@ -2857,7 +2780,7 @@ function renderAssignTypeView(showClasses) {
             doneSets = allDates.filter(d => d <= today).length;
           }
           const pct  = total > 0 ? Math.round(doneSets / total * 100) : 0;
-          const barC = pct >= 70 ? '#3E7A5A' : pct >= 30 ? '#C88A00' : '#B83224';
+          const barC = pct >= 70 ? '#2B7FD4' : pct >= 30 ? '#D4820F' : '#B83224';
           progressHTML = `<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
               <span style="font-size:11px;font-weight:700;color:${TYPE_COL[type]}">${doneSets}/${total}세트</span>
               <span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;background:${TYPE_PCTBG[type]};color:${TYPE_COL[type]}">${pct}%</span>
@@ -2899,7 +2822,7 @@ function renderAssignTypeView(showClasses) {
             <span style="font-size:13px;font-weight:700;min-width:70px;flex-shrink:0;color:var(--text2)">${stu.name}</span>
             <span style="font-size:10px;color:var(--text3)">${a.startDate} 시작</span>
             ${a.endDate ? `<span style="font-size:10px;color:var(--text3)">~ ${a.endDate}</span>` : ''}
-            <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:4px;background:#DFF2E4;color:#3E7A5A;border:1px solid #B8DCC4">완료 ✓</span>
+            <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:4px;background:#D8E8B0;color:#7D9020;border:1px solid #C0D880">완료 ✓</span>
             <button class="btn btn-ghost btn-sm" style="margin-left:auto;flex-shrink:0;font-size:10px;padding:2px 8px" onclick="openEditAssignModal('${a.id}')">✏ 수정</button>
           </div>`
         ).join('');
@@ -3205,51 +3128,53 @@ function filterAssignStudents(query) {
 function renderStudentDetailPage() {
   if (DB.classes.length === 0) {
     return `<div class="page-header"><div class="page-title">학생개별관리</div></div>
-      <div class="empty-state"><div class="empty-title">반이 없습니다</div></div>`;
+      <div class="empty-state"><div class="empty-title">반이 없습니다</div><div class="empty-sub">먼저 반을 등록해 주세요.</div></div>`;
   }
   const today = formatDate(new Date());
 
+  // ── 반 탭 (전체 없이 반만) ────────────────────────────────
   if (!_stuDetailClassFilter && DB.classes.length > 0) _stuDetailClassFilter = DB.classes[0].id;
-
-  // ── 반 탭
   const classTabsHTML = `
-    <div class="tab-bar" style="margin-bottom:10px">
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
       ${DB.classes.map(cls=>`<button class="tab-btn ${_stuDetailClassFilter===cls.id?'active':''}" onclick="setStudentDetailClass('${cls.id}')">${cls.name}</button>`).join('')}
     </div>`;
 
-  const showStudents = _stuDetailClassFilter ? getStudentsByClass(_stuDetailClassFilter) : DB.students;
+  // ── 학생 칩 목록 ──────────────────────────────────────────
+  const showStudents = _stuDetailClassFilter
+    ? getStudentsByClass(_stuDetailClassFilter)
+    : DB.students;
+
   if (showStudents.length === 0) {
-    return `<div class="page-header"><div class="page-title">학생개별관리</div></div>${classTabsHTML}
-      <div class="empty-state" style="padding:40px"><div class="empty-sub">해당 반에 학생이 없습니다.</div></div>`;
+    return `<div class="page-header"><div class="page-title">학생개별관리</div><div class="page-sub">학생을 선택해 개인 이력과 진도 계획을 확인합니다.</div></div>
+      ${classTabsHTML}<div class="empty-state" style="padding:40px"><div class="empty-sub">해당 반에 학생이 없습니다.</div></div>`;
   }
 
-  // ── 학생 칩 목록
   const chipsHTML = `
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:14px;border-bottom:1.5px solid var(--border)">
       ${showStudents.map(stu => {
         const ci = DB.classes.findIndex(c=>c.id===stu.classId);
         const color = getClassColor(ci>=0?ci:0);
         const active = stu.id === _selectedStudentId;
         return `<button onclick="selectStudent('${stu.id}')"
-            style="display:flex;align-items:center;gap:5px;padding:5px 13px;border-radius:20px;
-              font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .15s;
+            style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;
+              font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .15s;
               ${active?`background:${color};color:#fff;border-color:${color}`:`background:var(--surface);color:var(--text2);border-color:var(--border2)`}">
-            <span style="width:5px;height:5px;border-radius:50%;background:${active?'rgba(255,255,255,.7)':color};flex-shrink:0"></span>
+            <span style="width:6px;height:6px;border-radius:50%;background:${active?'rgba(255,255,255,.7)':color};flex-shrink:0"></span>
             ${stu.name}
           </button>`;
       }).join('')}
     </div>`;
 
-  // ── 학생 상세
+  // ── 학생 상세 ──────────────────────────────────────────────
   let detailHTML = '';
   const selStu = showStudents.find(s=>s.id===_selectedStudentId);
 
   if (!selStu) {
     detailHTML = `
-      <div style="padding:60px 0;text-align:center;color:var(--text3)">
-        <div style="font-size:36px;margin-bottom:12px;opacity:.4">👆</div>
-        <div style="font-size:13px;font-weight:600;color:var(--text2)">학생을 선택하세요</div>
-        <div style="font-size:11px;margin-top:5px;color:var(--text3)">위 버튼을 클릭하면 개인 이력을 확인할 수 있습니다</div>
+      <div style="padding:48px 0;text-align:center;color:var(--text3)">
+        <div style="font-size:40px;margin-bottom:12px">👆</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text2)">학생을 선택하세요</div>
+        <div style="font-size:12px;margin-top:6px">위의 버튼을 클릭하면 개인 이력을 확인할 수 있습니다</div>
       </div>`;
   } else {
     const stu    = selStu;
@@ -3265,101 +3190,85 @@ function renderStudentDetailPage() {
     const planSafe  = planVal.replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const createdAt = stu.createdAt ? stu.createdAt.slice(0,10) : '미등록';
 
-    // ── 프로필 카드
+    // ── 프로필 카드 ───────────────────────────────────────────
     const profileCard = `
-      <div class="card" style="margin-bottom:12px;padding:18px 20px;display:flex;align-items:flex-start;gap:16px">
-        <div style="width:44px;height:44px;border-radius:10px;background:${clsCol};display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;flex-shrink:0">
+      <div class="card" style="margin-bottom:14px;padding:16px 20px;display:flex;align-items:flex-start;gap:16px;overflow:hidden">
+        <div style="width:48px;height:48px;border-radius:12px;background:${clsCol};display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:800;flex-shrink:0">
           ${stu.name?stu.name.charAt(0):'?'}
         </div>
         <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-            <span style="font-size:17px;font-weight:700;color:var(--text)">${stu.name}</span>
-            <span style="display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)">${cls?.name||''}</span>
-            <span style="font-size:10px;color:var(--text3)">등록 ${createdAt}</span>
-            <span style="font-size:10px;color:var(--text3)">진행중 <strong style="color:var(--blue)">${activeCnt}</strong>건 · 완료 <strong style="color:var(--text2)">${doneCnt}</strong>건</span>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <span style="font-size:18px;font-weight:800;color:var(--text)">${stu.name}</span>
+            <span class="badge b-gray">${cls?.name||''}</span>
+            <span style="font-size:11px;color:var(--text3)">등록 ${createdAt}</span>
+            <span style="font-size:11px;color:var(--text3)">과제 진행중 ${activeCnt}건 · 완료 ${doneCnt}건</span>
           </div>
-          <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">특이사항 메모</div>
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px">특이사항 메모</div>
           <textarea
-            style="width:100%;border:1px solid var(--border);border-radius:7px;padding:8px 10px;
-              font-size:12px;color:var(--blue);font-weight:500;font-family:inherit;
-              background:var(--surface2);min-height:38px;max-height:90px;resize:vertical;
-              outline:none;line-height:1.5;box-sizing:border-box;transition:border .15s"
+            style="width:100%;border:1px solid var(--border);border-radius:6px;padding:8px 10px;
+              font-size:12px;color:#1A5FAD;font-style:italic;font-weight:600;font-family:inherit;
+              background:var(--surface2);min-height:40px;max-height:100px;resize:vertical;
+              outline:none;line-height:1.5;box-sizing:border-box"
             placeholder="특이사항 메모..."
-            onfocus="this.style.borderColor='var(--blue)';this.style.background='var(--surface)'"
-            onblur="this.style.borderColor='var(--border)';this.style.background='var(--surface2)';saveStuMemo('${stu.id}',this.value)"
+            onfocus="this.style.borderColor='var(--blue)'"
+            onblur="this.style.borderColor='var(--border)';saveStuMemo('${stu.id}',this.value)"
           >${memoSafe}</textarea>
         </div>
       </div>`;
 
-    // ── 과제 이력 (4컬럼)
-    const TYPE_ORDER = ['SV','HV','MAIN','SUB'];
-    const TYPE_META_D = {
-      SV:   {col:'#3A5A9A', bg:'#E8EEFA', bdr:'#A8B8E8', label:'수업보카'},
-      HV:   {col:'#A86820', bg:'#FEF5DC', bdr:'#E8D890', label:'홈보카'},
-      MAIN: {col:'#3E7A5A', bg:'#EBF5EE', bdr:'#B8DCC4', label:'주교재'},
-      SUB:  {col:'#7A3020', bg:'#F5EDEA', bdr:'#E0C8C0', label:'부교재'},
-    };
+    // ── 과제 이력 (4컬럼 가로: SV→HV→MAIN→SUB, 각 이력 세로 정렬) ─
+    const TYPE_ORDER  = ['SV','HV','MAIN','SUB'];
+    const HDR_BG  = {SV:'#FAE6F0', HV:'#E0EFF6', MAIN:'#EEF9E8', SUB:'#F5E8EC'};
+    const CELL_BG = {SV:'#FFFFFF', HV:'#FFFFFF', MAIN:'#FFFFFF', SUB:'#FFFFFF'};
 
     const colHeaders = TYPE_ORDER.map((tp, i) => {
-      const m   = TYPE_META_D[tp];
-      const ta  = assigns.filter(a => a.type === tp);
-      const an  = ta.filter(a => !isAssignDone(a)).length;
-      const sep = i === 2 ? 'border-left:2px solid var(--border2)' : i > 0 ? 'border-left:1px solid var(--border)' : '';
+      const ta   = assigns.filter(a => a.type === tp);
+      const an   = ta.filter(a => !isAssignDone(a)).length;
+      const bl   = i === 2 ? 'border-left:2px solid var(--border2)'
+                 : i > 0  ? 'border-left:1px solid var(--border)' : '';
       return `
-        <div style="padding:10px 14px;background:${m.bg};${sep};border-top:2px solid ${m.col}">
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            <span style="font-size:10px;font-weight:700;color:${m.col};letter-spacing:.04em;text-transform:uppercase">${m.label}</span>
-            ${an > 0 ? `<span style="font-size:9px;font-weight:600;padding:1px 7px;border-radius:20px;background:${m.col};color:#fff">진행중 ${an}</span>` : ''}
-            ${ta.length === 0 ? `<span style="font-size:9px;color:var(--text3)">이력 없음</span>` : ''}
-          </div>
+        <div style="padding:9px 14px;background:${HDR_BG[tp]};${bl}">
+          <span class="type-chip ${TYPE_CHIPS[tp]}">${TYPE_LABELS[tp]}</span>
+          ${an > 0 ? `<span class="badge b-gray" style="margin-left:6px">진행중 ${an}</span>` : ''}
+          ${ta.length === 0 ? `<span style="font-size:10px;color:var(--text3);margin-left:6px">이력 없음</span>` : ''}
         </div>`;
     }).join('');
 
     const colBodies = TYPE_ORDER.map((tp, i) => {
-      const m      = TYPE_META_D[tp];
       const isVoca = tp === 'SV' || tp === 'HV';
       const ta     = assigns.filter(a => a.type === tp)
                       .sort((a,b) => (b.startDate||'').localeCompare(a.startDate||''));
-      const sep    = i === 2 ? 'border-left:2px solid var(--border2)' : i > 0 ? 'border-left:1px solid var(--border)' : '';
+      const bl     = i === 2 ? 'border-left:2px solid var(--border2)'
+                   : i > 0  ? 'border-left:1px solid var(--border)' : '';
 
       if (ta.length === 0) {
-        return `<div style="${sep};padding:20px 14px;text-align:center;color:var(--border2);font-size:16px">—</div>`;
+        return `<div style="${bl};padding:20px 14px;text-align:center;color:var(--text3);font-size:14px">—</div>`;
       }
 
       const items = ta.map(a => {
-        const done = isAssignDone(a);
-        const itemCol  = done ? 'var(--text3)'     : 'var(--text)';
-        const itemBg   = done ? 'var(--surface2)'  : 'var(--surface)';
-        const leftBdr  = done ? '2px solid var(--border)' : `2px solid ${m.col}`;
-        const badge    = done
-          ? `<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--text3);border:1px solid var(--border2)">완료 ✓</span>`
-          : `<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;background:${m.col};color:#fff">진행중</span>`;
+        const done  = isAssignDone(a);
+        const dotC  = done ? '#3D9A1A' : '#2B7FD4';
+        const dotSh = done ? '' : 'box-shadow:0 0 0 3px rgba(43,127,212,.2)';
 
         let chips = '', progHTML = '';
         if (isVoca) {
           const tot = a.sets || 0;
-          const mkChip = (txt, bg, col, bdr) =>
-            `<span style="display:inline-flex;align-items:center;font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;background:${bg};color:${col};border:1px solid ${bdr};white-space:nowrap">${txt}</span>`;
-          const chipBg  = done ? 'var(--surface2)' : m.bg;
-          const chipCol = done ? 'var(--text3)'    : m.col;
-          const chipBdr = done ? 'var(--border2)'  : m.bdr;
-          if (tot)        chips += mkChip(`${tot}세트`, chipBg, chipCol, chipBdr);
-          if (a.perSet)   chips += mkChip(`1set ${a.perSet}`, chipBg, chipCol, chipBdr);
-          if (a.memorize) chips += mkChip(`암기 ${a.memorize}`, chipBg, chipCol, chipBdr);
-          if (a.recall)   chips += mkChip(`리콜 ${a.recall}`, chipBg, chipCol, chipBdr);
-          if (a.test)     chips += mkChip(`테스트 ${a.test}점${a.testType?' · '+a.testType:''}`, chipBg, chipCol, chipBdr);
-
+          if (tot)        chips += `<span class="chip-sm">${tot}세트</span>`;
+          if (a.perSet)   chips += `<span class="chip-sm">1set ${a.perSet}</span>`;
+          if (a.memorize) chips += `<span class="chip-sm">암기 ${a.memorize}</span>`;
+          if (a.recall)   chips += `<span class="chip-sm">리콜 ${a.recall}</span>`;
+          if (a.test)     chips += `<span class="chip-sm">테스트 ${a.test}점${a.testType?' · '+a.testType:''}</span>`;
           if (!done && tot > 0) {
             const allD = getStudyDates(a.startDate, tot, a.type==='SV'?(a.studyDays||null):null);
             const ds   = allD.filter(d => d <= today).length;
             const pct  = Math.round(ds / tot * 100);
-            const barC = pct >= 70 ? '#3E7A5A' : pct >= 30 ? '#C88A00' : '#B83224';
+            const barC = pct >= 70 ? '#2B7FD4' : pct >= 30 ? '#D4820F' : '#B83224';
             progHTML = `
-              <div style="margin-top:6px;display:flex;align-items:center;gap:7px">
-                <div style="flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden;max-width:100px">
+              <div style="margin-top:5px;display:flex;align-items:center;gap:6px">
+                <div style="width:80px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
                   <div style="height:100%;width:${pct}%;background:${barC};border-radius:2px"></div>
                 </div>
-                <span style="font-size:9px;color:var(--text3)">${ds}/${tot} · ${pct}%</span>
+                <span style="font-size:10px;color:var(--text3)">${ds}/${tot} · ${pct}%</span>
               </div>`;
           }
         }
@@ -3372,19 +3281,23 @@ function renderStudentDetailPage() {
           dateRange += ` ~ ${a.endDate}`;
         }
 
+        const badge = done
+          ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;background:#D8E8B0;color:#7D9020;border:1px solid #C0D880">완료 ✓</span>`
+          : `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;background:#1A5878;color:#fff">진행중</span>`;
+
         return `
-          <div style="padding:9px 12px;margin:3px;border:0.5px solid var(--border);border-left:${leftBdr};border-radius:8px;background:${itemBg}">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:${chips||progHTML?'5px':'0'}">
-              <span style="font-size:12px;font-weight:600;color:${itemCol};white-space:nowrap">${a.book}</span>
-              <span style="font-size:9px;color:var(--text3);white-space:nowrap">${dateRange}</span>
+          <div style="padding:8px 11px;margin:3px;border:${done?'1px solid #ECEAE6':'1px solid #E2DFD8'};border-radius:7px;background:${done?'#FAFAF8':'#FFFFFF'}">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${dotC};${dotSh}"></div>
+              <span style="font-size:12px;font-weight:800;color:${done?'var(--text2)':'var(--text)'};white-space:nowrap">${a.book}</span>
+              <span style="font-size:10px;color:var(--text3);white-space:nowrap">${dateRange}</span>
               ${badge}
             </div>
-            ${chips ? `<div style="display:flex;gap:3px;flex-wrap:wrap">${chips}</div>` : ''}
-            ${progHTML}
+            ${chips ? `<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px;padding-left:14px">${chips}</div>` : ''}
           </div>`;
       }).join('');
 
-      return `<div style="${sep};padding:4px">${items}</div>`;
+      return `<div style="${bl}">${items}</div>`;
     }).join('');
 
     const historyHTML = `
@@ -3397,18 +3310,20 @@ function renderStudentDetailPage() {
         </div>
       </div>`;
 
-    // ── 출결 요약
+    // ── 출결 요약 ─────────────────────────────────────────────
     const attendData  = DB.attendance || {};
     const absentDates = Object.entries(attendData)
       .filter(([,ids]) => Array.isArray(ids) && ids.includes(stu.id))
       .map(([d]) => d).sort();
     const totalAbsent = absentDates.length;
+
     const byMonth = {};
     absentDates.forEach(d => {
       const ym = d.slice(0,7);
       if (!byMonth[ym]) byMonth[ym] = [];
       byMonth[ym].push(d.slice(5));
     });
+
     const now2 = new Date();
     const recentMonths = [];
     for (let i=11;i>=0;i--) {
@@ -3416,40 +3331,41 @@ function renderStudentDetailPage() {
       const ym = `${md.getFullYear()}-${String(md.getMonth()+1).padStart(2,'0')}`;
       if (byMonth[ym]) recentMonths.push({ym, dates: byMonth[ym]});
     }
+
     const attendBody = recentMonths.length===0
-      ? `<div style="padding:14px 16px;color:var(--text3);font-size:12px;text-align:center">최근 12개월 결석 기록 없음</div>`
+      ? `<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px">최근 12개월 결석 기록 없음</div>`
       : recentMonths.map(({ym,dates})=>`
-          <div style="display:flex;align-items:center;gap:12px;padding:7px 16px;border-bottom:0.5px solid var(--border)">
-            <span style="font-size:11px;font-weight:600;color:var(--text2);min-width:60px">${ym}</span>
-            <span style="font-size:11px;font-weight:600;color:#B83224">결석 ${dates.length}회</span>
+          <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:12px;font-weight:700;color:var(--text2);min-width:62px">${ym}</span>
+            <span style="font-size:12px;font-weight:700;color:#B83224">결석 ${dates.length}회</span>
             <span style="font-size:10px;color:var(--text3)">${dates.join(', ')}</span>
           </div>`).join('');
 
     const attendCard = `
       <div class="card" style="margin-bottom:12px;overflow:hidden">
         <div class="card-header">
-          <span style="font-size:12px;font-weight:600;color:var(--text)">출결 요약</span>
-          <span style="display:inline-flex;align-items:center;font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text3);border:1px solid var(--border2);margin-left:6px">총 결석 ${totalAbsent}회</span>
-          <span style="font-size:10px;color:var(--text3);margin-left:4px">최근 12개월 기준</span>
+          <span style="font-size:12px;font-weight:800;color:var(--text)">출결 요약</span>
+          <span class="badge b-gray">총 결석 ${totalAbsent}회</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:4px">최근 12개월 기준</span>
         </div>
-        ${attendBody}
+        <div style="padding:0 16px">${attendBody}</div>
       </div>`;
 
-    // ── 진도 계획
+    // ── 진도 계획 ─────────────────────────────────────────────
     const planCard = `
       <div class="card" style="margin-bottom:12px;overflow:hidden">
         <div class="card-header">
-          <span style="font-size:12px;font-weight:600;color:var(--blue)">진도 계획</span>
-          <span style="font-size:10px;color:var(--text3);margin-left:6px">다음 진행할 교재·순서를 메모하세요</span>
+          <span style="font-size:12px;font-weight:800;color:#4A2D99">📋 진도 계획</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:6px">다음 진행할 교재·순서를 메모하세요</span>
         </div>
-        <div style="padding:12px 14px">
+        <div style="padding:12px 16px">
           <textarea
-            style="width:100%;border:1px solid var(--border);border-radius:7px;padding:10px 12px;
+            style="width:100%;border:1px solid var(--border);border-radius:6px;padding:10px 12px;
               font-size:12px;color:var(--text);font-family:inherit;
-              background:var(--surface2);min-height:68px;resize:vertical;
-              outline:none;line-height:1.6;box-sizing:border-box;transition:border .15s"
+              background:var(--surface2);min-height:72px;resize:vertical;
+              outline:none;line-height:1.6;box-sizing:border-box"
             placeholder="예: 5차 완료 후 → 중등필수4차(60세트) → 천문장 심화편"
-            onfocus="this.style.borderColor='var(--blue)';this.style.background='var(--surface)'"
+            onfocus="this.style.borderColor='#4A2D99';this.style.background='var(--surface)'"
             onblur="this.style.borderColor='var(--border)';this.style.background='var(--surface2)';saveStuPlan('${stu.id}',this.value)"
           >${planSafe}</textarea>
         </div>
@@ -3467,6 +3383,7 @@ function renderStudentDetailPage() {
     ${chipsHTML}
     ${detailHTML}`;
 }
+
 // ══════════════════════════════════════════════════════════
 // 8-A. 반별학습현황 페이지 (오늘 기준 진행중 과제 요약)
 // ══════════════════════════════════════════════════════════
@@ -3507,11 +3424,12 @@ function renderStatusPage() {
       <div class="empty-title">이 반에 학생이 없습니다</div></div>`;
   }
 
-  // ── 셀 렌더 헬퍼 (원본 로직 유지, Forest Sage 스타일) ────
+  // ── 셀 렌더 헬퍼 ─────────────────────────────────────────
+
   // 보카 셀: 진행중인 과제 중 가장 최근 것
   function vocaStatus(assigns, type, isEven) {
-    const typeColor = type==='SV' ? '#3A5A9A' : '#A86820';
-    const emptyBg   = isEven ? 'var(--surface2)' : 'var(--surface)';
+    const typeColor = type==='SV' ? '#CC1060' : '#1A5878';
+    const emptyBg   = isEven ? '#F8F7F4' : '#FFFFFF';
 
     const list = assigns.filter(a => a.type === type);
     if (list.length === 0) return `<td style="background:${emptyBg};padding:12px 14px;text-align:center;color:var(--text3);font-size:18px;vertical-align:middle;border-left:1px solid var(--border)">—</td>`;
@@ -3534,30 +3452,30 @@ function renderStatusPage() {
     } else if (isDone) { doneSets = total; }
 
     const pct      = total > 0 ? Math.round(doneSets / total * 100) : 0;
-    const barColor = isDone ? '#3E7A5A' : (pct >= 70 ? '#2A6E8A' : pct >= 30 ? '#C88A00' : '#B83224');
-    const bg       = isDone ? (isEven ? 'var(--surface2)' : '#E8EFE8') : (isEven ? 'var(--surface2)' : 'var(--surface)');
-    const bd       = isDone ? '1px solid var(--border)' : `1px solid ${typeColor}44`;
-    const badgeBg  = isDone ? 'var(--border2)' : typeColor;
-    const badgeCol = isDone ? 'var(--text3)' : '#fff';
+    const barColor = isDone ? '#7D9020' : (pct >= 70 ? '#1A5878' : pct >= 30 ? '#B86000' : '#B82222');
+    const bg       = isDone ? '#F8F7F4' : '#FFFFFF';
+    const bd       = isDone ? '1px solid #E8E5DE' : `1px solid ${typeColor}44`;
+    const badgeBg  = isDone ? '#ECEAE6' : typeColor;
+    const badgeCol = isDone ? '#888' : '#fff';
 
     return `
       <td style="background:${bg};border:${bd};border-radius:8px;padding:11px 13px;vertical-align:top;border-left:1px solid var(--border)">
         <div style="font-size:12px;font-weight:700;color:${isDone?'var(--text2)':'var(--text)'};white-space:nowrap;margin-bottom:6px">${target.book}</div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:nowrap">
           <span style="font-size:11px;color:var(--text3);white-space:nowrap">${doneSets}/${total}세트</span>
-          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${badgeBg};color:${badgeCol};white-space:nowrap">${isDone?'완료':pct+'%'}</span>
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:${badgeBg};color:${badgeCol};white-space:nowrap">${isDone?'완료':pct+'%'}</span>
         </div>
-        <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:2px;transition:width .3s"></div>
+        <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .3s"></div>
         </div>
       </td>`;
   }
 
   // 교재 셀: 진행중인 과제 목록 (여러 개 가능)
   function textbookStatus(assigns, type, isEven) {
-    const typeColor = type==='MAIN' ? '#3E7A5A' : '#7A3020';
+    const typeColor = type==='MAIN' ? '#7D9020' : '#7A1030';
     const borderL   = type==='MAIN' ? '2px solid var(--border2)' : '1px solid var(--border)';
-    const emptyBg   = isEven ? 'var(--surface2)' : 'var(--surface)';
+    const emptyBg   = isEven ? '#F8F7F4' : '#FFFFFF';
 
     const list = assigns.filter(a => a.type === type);
     if (list.length === 0) return `<td style="background:${emptyBg};padding:12px 14px;text-align:center;color:var(--text3);font-size:18px;vertical-align:middle;border-left:${borderL}">—</td>`;
@@ -3572,20 +3490,20 @@ function renderStatusPage() {
 
     if (targets.length === 0) return `<td style="background:${emptyBg};padding:12px 14px;text-align:center;color:var(--text3);font-size:18px;vertical-align:middle;border-left:${borderL}">—</td>`;
 
-    const tdBg = (active.length > 0) ? (isEven ? 'var(--surface2)' : 'var(--surface)') : (isEven ? 'var(--surface2)' : '#E8EFE8');
-    const tdBd = (active.length > 0) ? `1px solid ${typeColor}44` : '1px solid var(--border)';
+    const tdBg = (active.length > 0) ? '#FFFFFF' : '#F8F7F4';
+    const tdBd = (active.length > 0) ? `1px solid ${typeColor}44` : '1px solid #E8E5DE';
 
     const items = targets.map((a, idx) => {
       const done   = a.endDate && a.endDate < today;
-      const badgeBg  = done ? 'var(--border2)' : typeColor;
-      const badgeCol = done ? 'var(--text3)'    : '#fff';
+      const badgeBg  = done ? '#ECEAE6' : typeColor;
+      const badgeCol = done ? '#888'    : '#fff';
       const badgeTxt = done ? '완료 ✓'  : '진행중';
       return `
         <div style="margin-bottom:${idx < targets.length-1 ? '8px' : '0'}">
           <div style="font-size:12px;font-weight:700;color:${done?'var(--text2)':'var(--text)'};white-space:nowrap;margin-bottom:4px">${a.book}</div>
           <div style="display:flex;align-items:center;gap:5px">
             <span style="font-size:10px;color:var(--text3)">${a.startDate}</span>
-            <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${badgeBg};color:${badgeCol}">${badgeTxt}</span>
+            <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:${badgeBg};color:${badgeCol}">${badgeTxt}</span>
           </div>
         </div>`;
     }).join('');
@@ -3600,32 +3518,32 @@ function renderStatusPage() {
 
   const theadHTML = `
     <tr>
-      <th style="position:sticky;left:0;top:0;z-index:6;background:var(--surface2);min-width:90px;
+      <th style="position:sticky;left:0;top:0;z-index:6;background:#F8F7F3;min-width:90px;
         border-right:1px solid var(--border2);border-bottom:2px solid var(--border2);
         font-size:12px;font-weight:700;color:var(--text2);padding:9px 12px;text-align:left">
         학생
       </th>
-      <th style="position:sticky;left:90px;top:0;z-index:5;background:var(--surface2);min-width:200px;
+      <th style="position:sticky;left:90px;top:0;z-index:5;background:#FFFBF0;min-width:200px;
         border-right:2px solid var(--border2);border-bottom:2px solid var(--border2);
-        font-size:11px;font-weight:700;color:var(--text3);padding:9px 12px;text-align:left">
+        font-size:11px;font-weight:700;color:#7A5F00;padding:9px 12px;text-align:left">
         특이사항
       </th>
-      <th style="position:sticky;top:0;z-index:3;background:#3A5A9A;min-width:160px;
+      <th style="position:sticky;top:0;z-index:3;background:#CC1060;min-width:160px;
         border-bottom:2px solid var(--border2);border-left:1px solid var(--border);
         font-size:11px;font-weight:700;color:#fff;padding:9px 14px;text-align:left">
         수업보카
       </th>
-      <th style="position:sticky;top:0;z-index:3;background:#3A5A9A;min-width:160px;
+      <th style="position:sticky;top:0;z-index:3;background:#1A5878;min-width:160px;
         border-bottom:2px solid var(--border2);border-left:1px solid var(--border);
         font-size:11px;font-weight:700;color:#fff;padding:9px 14px;text-align:left">
         홈보카
       </th>
-      <th style="position:sticky;top:0;z-index:3;background:#3E7A5A;min-width:160px;
+      <th style="position:sticky;top:0;z-index:3;background:#7D9020;min-width:160px;
         border-bottom:2px solid var(--border2);border-left:2px solid var(--border2);
         font-size:11px;font-weight:700;color:#fff;padding:9px 14px;text-align:left">
         주교재
       </th>
-      <th style="position:sticky;top:0;z-index:3;background:#7A3020;min-width:160px;
+      <th style="position:sticky;top:0;z-index:3;background:#7A1030;min-width:160px;
         border-bottom:2px solid var(--border2);border-left:1px solid var(--border);
         font-size:11px;font-weight:700;color:#fff;padding:9px 14px;text-align:left">
         부교재
@@ -3635,7 +3553,7 @@ function renderStatusPage() {
   const tbodyHTML = students.map((stu, si) => {
     const assigns   = DB.assignments.filter(a=>a.studentId===stu.id);
     const isEven    = si % 2 !== 0;
-    const rowBg     = isEven ? 'var(--surface2)' : 'var(--surface)';
+    const rowBg     = isEven ? '#F2F4F8' : '#FFFFFF';
     const memoVal   = (DB.stuMemos && DB.stuMemos[stu.id]) || '';
     // XSS 방지: 메모 내용을 attribute value에 직접 넣을 때 따옴표 이스케이프
     const memoSafe  = memoVal.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -3656,7 +3574,7 @@ function renderStatusPage() {
             class="sc-memo-textarea"
             style="width:100%;min-height:48px;max-height:120px;resize:vertical;
               border:1px solid transparent;border-radius:5px;padding:4px 6px;
-              font-size:13.2px;font-family:inherit;color:var(--blue);font-weight:500;
+              font-size:13.2px;font-family:inherit;color:#1A5FAD;font-style:italic;font-weight:600;
               background:transparent;outline:none;line-height:1.5;box-sizing:border-box"
             onfocus="this.style.background='var(--surface)';this.style.borderColor='var(--blue-mid)'"
             onblur="this.style.background='transparent';this.style.borderColor='transparent';saveStuMemo('${stu.id}',this.value)"
@@ -3682,10 +3600,10 @@ function renderStatusPage() {
       <div class="card-header" style="flex-wrap:wrap;gap:8px">
         <span style="width:10px;height:10px;border-radius:50%;background:${clsColor};display:inline-block;flex-shrink:0"></span>
         <span style="font-size:14px;font-weight:700;color:var(--text);flex-shrink:0">${cls.name}</span>
-        <span class="badge b-green">${students.length}명</span>
+        <span class="badge b-blue">${students.length}명</span>
         <!-- 반 메모 — flex:1로 나머지 공간 전부 차지 -->
         <div style="margin-left:auto;display:flex;align-items:center;gap:6px;flex:1;min-width:200px;max-width:600px">
-          <span style="font-size:11px;font-weight:700;color:var(--text3);white-space:nowrap;flex-shrink:0">반 메모</span>
+          <span style="font-size:11px;font-weight:700;color:#7A5F00;white-space:nowrap;flex-shrink:0">📝 반 메모</span>
           <input type="text"
             id="class-memo-${cls.id}"
             value="${classMemoSafe}"
@@ -3715,10 +3633,6 @@ function renderStatusPage() {
 // ══════════════════════════════════════════════════════════
 // 8. 반별학습이력 페이지
 // ══════════════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════════════
-// 8. 반별학습이력 페이지
-// ══════════════════════════════════════════════════════════
 function renderHistoryPage() {
   if (DB.classes.length === 0) {
     return `<div class="page-header"><div class="page-title">반별학습이력</div></div>
@@ -3726,13 +3640,13 @@ function renderHistoryPage() {
   }
 
   const classTabsHTML = `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-      <div class="tab-bar" style="margin-bottom:0">
+    <div style="display:flex;align-items:stretch;border-bottom:2px solid var(--border);margin-bottom:16px;gap:8px">
+      <div style="display:flex;gap:2px;flex:1;align-items:flex-end">
         ${DB.classes.map(cls=>`<button class="tab-btn ${currentClassFilter===cls.id?'active':''}" onclick="showPage('history','${cls.id}')">${cls.name}</button>`).join('')}
       </div>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <div style="display:flex;align-items:center;gap:6px;padding-bottom:6px">
         <div style="position:relative">
-          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);pointer-events:none">🔍</span>
+          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3)">🔍</span>
           <input
             id="history-stu-search"
             class="form-input"
@@ -3744,13 +3658,13 @@ function renderHistoryPage() {
         <span id="history-stu-count" style="font-size:11px;color:var(--text3);white-space:nowrap"></span>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:5px;margin-bottom:14px;flex-wrap:wrap">
-      <span style="font-size:10px;color:var(--text3);margin-right:2px">표시</span>
-      <button id="hf-btn-SV"   onclick="toggleHistoryType('SV')"   class="hf-btn" style="background:#E8EEFA;color:#3A5A9A;border-color:#A8B8E8">수업V</button>
-      <button id="hf-btn-HV"   onclick="toggleHistoryType('HV')"   class="hf-btn" style="background:#FEF5DC;color:#A86820;border-color:#E8D890">홈V</button>
-      <button id="hf-btn-MAIN" onclick="toggleHistoryType('MAIN')" class="hf-btn" style="background:#EBF5EE;color:#3E7A5A;border-color:#B8DCC4">주교재</button>
-      <button id="hf-btn-SUB"  onclick="toggleHistoryType('SUB')"  class="hf-btn" style="background:#F5EDEA;color:#8A3828;border-color:#E0C8C0">부교재</button>
-      <span style="font-size:10px;color:var(--text3);margin-left:2px">클릭하면 열 숨김/표시</span>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:11px;font-weight:700;color:var(--text3)">표시:</span>
+      <button id="hf-btn-SV"   onclick="toggleHistoryType('SV')"   class="hf-btn" style="background:#CC1060;color:#fff;border:1.5px solid #CC1060">수업V</button>
+      <button id="hf-btn-HV"   onclick="toggleHistoryType('HV')"   class="hf-btn" style="background:#1A5878;color:#fff;border:1.5px solid #1A5878">홈V</button>
+      <button id="hf-btn-MAIN" onclick="toggleHistoryType('MAIN')" class="hf-btn" style="background:#7D9020;color:#fff;border:1.5px solid #7D9020">주교재</button>
+      <button id="hf-btn-SUB"  onclick="toggleHistoryType('SUB')"  class="hf-btn" style="background:#7A1030;color:#fff;border:1.5px solid #7A1030">부교재</button>
+      <span style="font-size:10px;color:var(--text3);margin-left:4px">클릭하면 해당 열 숨김/표시</span>
     </div>`;
 
   if (!currentClassFilter && DB.classes.length > 0) currentClassFilter = DB.classes[0].id;
@@ -3858,7 +3772,7 @@ function renderHistoryPage() {
       ${students.map((stu,i)=>`<th class="th-name" colspan="${colsPerStu}" data-stu-col="${i}">${stu.name}</th>`).join('')}
     </tr>
     <tr>
-      ${students.map((_,i)=>typeKeys.map((t,ti)=>`<th class="th-type type-${t.toLowerCase()}${ti===0?' th-stu-first':''}" data-stu-col="${i}" data-type="${t}">${typeLabels[t]}</th>`).join('')).join('')}
+      ${students.map((_,i)=>typeKeys.map(t=>`<th class="th-type type-${t.toLowerCase()}" data-stu-col="${i}" data-type="${t}">${typeLabels[t]}</th>`).join('')).join('')}
     </tr>`;
 
   const tbodyHTML = dates.map(dateStr => {
@@ -3867,16 +3781,15 @@ function renderHistoryPage() {
     const dayLabel = `${dt.getMonth()+1}/${dt.getDate()}(${days[dt.getDay()]})`;
     const isToday = dateStr === today;
     const todayStyle = isToday
-      ? 'background:#FFF3DC;outline:1.5px solid #C88A0044;outline-offset:-1px;'
+      ? 'background:#FFF8E7;font-weight:700;color:#8F5409;'
       : '';
     const todayId = isToday ? 'id="history-today-row"' : '';
     return `
       <tr ${todayId} style="${todayStyle}">
-        <td class="td-date" style="${isToday?'color:#8A5E00;font-weight:700;background:#FFF0C8;':''}">${isToday?'▶ ':''} ${dayLabel}</td>
+        <td class="td-date" style="${isToday?'color:#8F5409;font-weight:800;':''}">${isToday?'▶ ':''} ${dayLabel}</td>
         ${students.map((stu,si)=>typeKeys.map((type,ti)=>{
           const val = getCellData(stu, dateStr, type);
-          const firstCls = ti===0 ? ' td-stu-first' : '';
-          return val ? `<td class="${typeClasses[type]}${firstCls}" data-stu-col="${si}" data-type="${type}">${val}</td>` : `<td class="${firstCls.trim()}" data-stu-col="${si}" data-type="${type}"></td>`;
+          return val ? `<td class="${typeClasses[type]}" data-stu-col="${si}" data-type="${type}">${val}</td>` : `<td data-stu-col="${si}" data-type="${type}"></td>`;
         }).join('')).join('')}
       </tr>`;
   }).join('');
@@ -3888,7 +3801,7 @@ function renderHistoryPage() {
     </div>
     ${classTabsHTML}
     <div class="card">
-      <div class="card-header"><span class="card-title">${cls.name} — 학습이력</span><span class="badge b-green">${students.length}명</span></div>
+      <div class="card-header"><span class="card-title">${cls.name} — 학습이력</span><span class="badge b-blue">${students.length}명</span></div>
       <div style="padding:0;overflow:hidden;border-radius:0 0 var(--r) var(--r)">
         <div class="history-wrap" id="history-scroll-wrap" data-today="${today}">
           <table class="history-table" id="history-main-table">
@@ -3945,60 +3858,51 @@ function renderVocaPage() {
 
     // 헤더 1행: 이력# | 학생명 colspan=2
     const thead1 = `<tr>
-      <th class="pt-r1-fixed" rowspan="2" style="top:0;border-bottom:none">이력#</th>
+      <th class="pt-r1-fixed" rowspan="2" style="top:0">이력#</th>
       ${stuData.map((d,i)=>`<th class="pt-stu-name voca-stu-col" data-stu-col="${i}" colspan="2">${d.stu.name}</th>`).join('')}
     </tr>`;
 
-    // 헤더 2행: 수업V | 홈V — 연한 배경 + 상단 컬러 라인
+    // 헤더 2행: 수업V | 홈V
     const thead2 = `<tr>
       ${stuData.map((_,i)=>`
-        <th class="pt-stu-type pt-sv-hdr voca-stu-col" data-stu-col="${i}">수업V</th>
-        <th class="pt-stu-type pt-hv-hdr voca-stu-col" data-stu-col="${i}">홈V</th>
+        <th class="pt-stu-type voca-stu-col" data-stu-col="${i}" style="background:#CC1060;color:#fff;top:40px">수업V</th>
+        <th class="pt-stu-type voca-stu-col" data-stu-col="${i}" style="background:#1A5878;color:#fff;top:40px">홈V</th>
       `).join('')}
     </tr>`;
 
-    // 보카 셀: 미니멀 재설계 — 동그라미 제거, 왼쪽 border 액센트
+    // 보카 셀: B안 레이아웃 — 컬러 점 + 좌측 보더
     function vocaCell(a, isSV, colIdx) {
       const cellClass = `voca-stu-col`;
       const colAttr   = `data-stu-col="${colIdx}"`;
       if (!a) return `<td class="pt-empty ${cellClass}" ${colAttr}>—</td>`;
 
       const done      = isAssignDone(a);
-      const typeCol   = isSV ? '#3A5A9A' : '#A86820';
-      const typeBg    = isSV ? '#E8EEFA' : '#FEF5DC';
-      const typeBdr   = isSV ? '#A8B8E8' : '#E8D890';
+      const typeColor = isSV ? '#CC1060' : '#1A5878';
+      const bg        = done ? '#FAFAF8' : '#FFFFFF';
+      const bd        = done ? '1px solid #ECEAE6' : '1px solid #E2DFD8';
+      const dotBg     = done ? '#C8C8C6' : typeColor;
+      const bookColor = done ? 'var(--text2)' : 'var(--text)';
 
-      // 진행중: 왼쪽 컬러 라인 + 흰 배경 / 완료: 중성 배경
-      const cellBg    = done ? 'var(--surface2)' : 'var(--surface)';
-      const leftBdr   = done ? '2px solid var(--border)' : `2px solid ${typeCol}`;
-      const bookCol   = done ? 'var(--text3)' : 'var(--text)';
-
-      // perSet 칩 — 라운드 pill
       const perSetChip = a.perSet
-        ? `<span style="display:inline-flex;align-items:center;font-size:9px;font-weight:600;padding:2px 6px;border-radius:20px;white-space:nowrap;margin-left:5px;border:1px solid ${done?'var(--border2)':typeBdr};background:${done?'var(--surface2)':typeBg};color:${done?'var(--text3)':typeCol}">1set ${a.perSet}</span>`
+        ? `<span style="background:${done?'#ECECEA':isSV?'#F4C0D8':'#B8D8EC'};color:${done?'#6A6A68':typeColor};font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;margin-left:4px">1set ${a.perSet}</span>`
         : '';
 
-      // 기준 칩들 — 라운드 pill, 작게
-      const chipStyle = (bg, col, bdr) =>
-        `display:inline-flex;align-items:center;font-size:9px;font-weight:500;padding:2px 7px;border-radius:20px;white-space:nowrap;background:${bg};color:${col};border:1px solid ${bdr}`;
-
-      const dnBg  = done ? 'var(--surface2)' : '#DFF2E4';
-      const dnCol = done ? 'var(--text3)'     : '#3E7A5A';
-      const dnBdr = done ? 'var(--border2)'   : '#B8DCC4';
-
       const chips = [
-        a.memorize ? `<span style="${chipStyle(dnBg,dnCol,dnBdr)}">암기 ${a.memorize}</span>` : '',
-        a.recall   ? `<span style="${chipStyle(dnBg,dnCol,dnBdr)}">리콜 ${a.recall}</span>`   : '',
-        a.test
-          ? `<span style="${chipStyle(done?'var(--surface2)':typeBg, done?'var(--text3)':typeCol, done?'var(--border2)':typeBdr)}">테스트 ${a.test}점${a.testType?' · '+a.testType:''}</span>`
-          : '',
+        a.memorize ? `<span style="background:${done?'#ECECEA':'#D8E8B0'};color:${done?'#6A6A68':'#7D9020'};font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap">암기 ${a.memorize}</span>` : '',
+        a.recall   ? `<span style="background:${done?'#ECECEA':'#B8D8EC'};color:${done?'#6A6A68':'#1A5878'};font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap">리콜 ${a.recall}</span>` : '',
+        a.test     ? `<span style="background:${done?'#ECECEA':'#F4C0D8'};color:${done?'#6A6A68':'#CC1060'};font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap">테스트 ${a.test}점${a.testType?' · '+a.testType:''}</span>` : '',
       ].filter(Boolean).join('');
 
-      return `<td class="${cellClass}" ${colAttr} style="background:${cellBg};border:0.5px solid var(--border);border-left:${leftBdr};border-radius:8px;padding:10px 12px;vertical-align:top;min-width:0">
-        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;margin-bottom:${chips?'6px':'0'}">
-          <span style="font-size:12px;font-weight:600;color:${bookCol};white-space:nowrap">${a.book}</span>${perSetChip}
+      return `<td class="${cellClass}" ${colAttr} style="background:${bg};border:${bd};border-radius:7px;padding:8px 11px;vertical-align:middle;min-width:0">
+        <div style="display:flex;align-items:flex-start;gap:7px">
+          <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px;background:${dotBg};border:2px solid rgba(255,255,255,0.9);box-shadow:0 0 0 1.5px ${dotBg}"></span>
+          <div style="min-width:0">
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;margin-bottom:${chips?'4px':'0'}">
+              <span style="font-size:12px;font-weight:500;color:${bookColor};white-space:nowrap">${a.book}</span>${perSetChip}
+            </div>
+            ${chips ? `<div style="display:flex;flex-wrap:wrap;gap:3px">${chips}</div>` : ''}
+          </div>
         </div>
-        ${chips ? `<div style="display:flex;flex-wrap:wrap;gap:3px">${chips}</div>` : ''}
       </td>`;
     }
 
@@ -4013,7 +3917,7 @@ function renderVocaPage() {
         <div class="card-header">
           <span style="width:10px;height:10px;border-radius:50%;background:${getClassColor(realIdx)};flex-shrink:0;display:inline-block"></span>
           <span class="card-title">${cls.name}</span>
-          <span class="badge b-green">${students.length}명</span>
+          <span class="badge b-blue">${students.length}명</span>
         </div>
         <div style="padding:0;overflow:hidden;border-radius:0 0 var(--r) var(--r)">
           <div class="pivot-wrap">
@@ -4115,54 +4019,47 @@ function renderTextbookPage() {
 
     // 헤더 1행: 이력# | 학생명 colspan=2
     const thead1 = `<tr>
-      <th class="pt-r1-fixed" rowspan="2" style="top:0;border-bottom:none">이력#</th>
+      <th class="pt-r1-fixed" rowspan="2" style="top:0">이력#</th>
       ${stuData.map((d,i)=>`<th class="pt-stu-name tb-stu-col" data-stu-col="${i}" colspan="2">${d.stu.name}</th>`).join('')}
     </tr>`;
 
-    // 헤더 2행: 주교재 | 부교재 — 연한 배경 + 상단 컬러 라인
+    // 헤더 2행: 주교재 | 부교재
     const thead2 = `<tr>
       ${stuData.map((_,i)=>`
-        <th class="pt-stu-type pt-main-hdr tb-stu-col" data-stu-col="${i}">주교재</th>
-        <th class="pt-stu-type pt-sub-hdr  tb-stu-col" data-stu-col="${i}">부교재</th>
+        <th class="pt-stu-type tb-stu-col" data-stu-col="${i}" style="background:#7D9020;color:#fff;top:40px">주교재</th>
+        <th class="pt-stu-type tb-stu-col" data-stu-col="${i}" style="background:#7A1030;color:#fff;top:40px">부교재</th>
       `).join('')}
     </tr>`;
 
-    // 교재 셀: 동그라미 제거 + left border 액센트 + 라운드 pill 배지
+    // 교재 셀: B안 레이아웃 — 컬러 점 + 좌측 보더
     function textCell(a, isMain, colIdx) {
       const cellClass = `tb-stu-col`;
       const colAttr   = `data-stu-col="${colIdx}"`;
       if (!a) return `<td class="pt-empty ${cellClass}" ${colAttr}>—</td>`;
 
-      const done    = isAssignDone(a);
-      const typeCol = isMain ? '#3E7A5A' : '#7A3020';
-      const typeBg  = isMain ? '#EBF5EE' : '#F5EDEA';
-      const typeBdr = isMain ? '#B8DCC4' : '#E0C8C0';
+      const done      = isAssignDone(a);
+      const typeColor = isMain ? '#7D9020' : '#7A1030';
+      const bg        = done ? '#FAFAF8' : '#FFFFFF';
+      const bd        = done ? '1px solid #ECEAE6' : '1px solid #E2DFD8';
+      const dotBg     = done ? '#C8C8C6' : typeColor;
+      const bookColor = done ? 'var(--text2)' : 'var(--text)';
 
-      const cellBg  = done ? 'var(--surface2)' : 'var(--surface)';
-      const leftBdr = done ? '2px solid var(--border)' : `2px solid ${typeCol}`;
-      const bookCol = done ? 'var(--text3)' : 'var(--text)';
-      const dateCol = done ? 'var(--text3)'  : 'var(--text3)';
-
-      // 상태 pill
-      let statusPill;
-      if (!a.endDate) {
-        // 종료일 없음 → 진행중
-        statusPill = `<span style="display:inline-flex;align-items:center;font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;background:${typeCol};color:#fff;border:1px solid ${typeCol}">진행중</span>`;
-      } else if (done) {
-        // 완료
-        statusPill = `<span style="display:inline-flex;align-items:center;font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;background:var(--surface2);color:var(--text3);border:1px solid var(--border2)">완료 ✓</span>`;
-      } else {
-        // 진행중 + 종료일 표시
-        statusPill = `<span style="display:inline-flex;align-items:center;font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;background:${typeBg};color:${typeCol};border:1px solid ${typeBdr}">~ ${a.endDate}</span>`;
-      }
+      const statusBadge = a.endDate
+        ? `<span style="background:${done?'#ECECEA':typeColor};color:${done?'#6A6A68':'#fff'};font-size:10px;font-weight:700;padding:1px 7px;border-radius:3px;white-space:nowrap">${done?'완료':'~ '+a.endDate}</span>`
+        : `<span style="background:${typeColor};color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:3px;white-space:nowrap">진행중</span>`;
 
       const dateText = a.startDate
-        ? `<span style="font-size:10px;color:${dateCol}">${a.startDate}</span>`
+        ? `<span style="font-size:10px;color:${done?'#AAAAAA':'var(--text3)'};margin-right:4px">${a.startDate}</span>`
         : '';
 
-      return `<td class="${cellClass}" ${colAttr} style="background:${cellBg};border:0.5px solid var(--border);border-left:${leftBdr};border-radius:8px;padding:10px 12px;vertical-align:top;min-width:0">
-        <div style="font-size:12px;font-weight:600;color:${bookCol};white-space:nowrap;margin-bottom:6px">${a.book}</div>
-        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">${dateText}${statusPill}</div>
+      return `<td class="${cellClass}" ${colAttr} style="background:${bg};border:${bd};border-radius:7px;padding:8px 11px;vertical-align:middle;min-width:0">
+        <div style="display:flex;align-items:flex-start;gap:7px">
+          <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px;background:${dotBg};border:2px solid rgba(255,255,255,0.9);box-shadow:0 0 0 1.5px ${dotBg}"></span>
+          <div style="min-width:0">
+            <div style="font-size:12px;font-weight:500;color:${bookColor};white-space:nowrap;margin-bottom:3px">${a.book}</div>
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px">${dateText}${statusBadge}</div>
+          </div>
+        </div>
       </td>`;
     }
 
@@ -4177,7 +4074,7 @@ function renderTextbookPage() {
         <div class="card-header">
           <span style="width:10px;height:10px;border-radius:50%;background:${getClassColor(realIdx)};flex-shrink:0;display:inline-block"></span>
           <span class="card-title">${cls.name}</span>
-          <span class="badge b-green">${students.length}명</span>
+          <span class="badge b-blue">${students.length}명</span>
         </div>
         <div style="padding:0;overflow:hidden;border-radius:0 0 var(--r) var(--r)">
           <div class="pivot-wrap">
@@ -4414,8 +4311,8 @@ function renderSettingsPage() {
             </div>
             <div style="display:flex;gap:8px;align-items:center">
               <input class="form-input" id="lib-new-${t}" placeholder="새 교재명 입력 후 추가"
-                style="flex:1" onkeydown="if(event.key==='Enter') addBookToLib(${JSON.stringify(t)})">
-              <button class="btn btn-primary btn-sm" onclick="addBookToLib(${JSON.stringify(t)})">＋ 추가</button>
+                style="flex:1" onkeydown="if(event.key==='Enter') addBookToLib('${t}')">
+              <button class="btn btn-primary btn-sm" onclick="addBookToLib('${t}')">＋ 추가</button>
             </div>
           </div>`;
         }).join('')}
@@ -4453,14 +4350,45 @@ function addBookToLib(type) {
   DB.bookLibrary[type].push(book);
   saveBookLibraryFb(type);
   toast(`"${book}" 추가되었습니다.`, 'success');
-  showPage('settings');
+  refreshLibSection(type);  // 전체 재렌더링 없이 해당 섹션만 갱신
 }
 function removeBookFromLib(type, book) {
   if (!confirm(`"${book}"을 라이브러리에서 삭제할까요?`)) return;
   if (!DB.bookLibrary || !Array.isArray(DB.bookLibrary[type])) return;
   DB.bookLibrary[type] = DB.bookLibrary[type].filter(b => b !== book);
   saveBookLibraryFb(type);
-  showPage('settings');
+  refreshLibSection(type);  // 전체 재렌더링 없이 해당 섹션만 갱신
+}
+
+// 교재 라이브러리 섹션 부분 갱신 (탭·스크롤 위치 유지)
+function refreshLibSection(type) {
+  const body = document.getElementById('lib-body-' + type);
+  if (!body) { showPage('settings'); return; }  // fallback
+
+  const books = (DB.bookLibrary && Array.isArray(DB.bookLibrary[type]))
+    ? DB.bookLibrary[type] : [];
+
+  const chipsHTML = books.length === 0
+    ? `<span style="font-size:12px;color:var(--text3)">등록된 교재 없음</span>`
+    : books.map(b => {
+        const bSafe = b.replace(/"/g,'&quot;');
+        return `<span style="display:flex;align-items:center;gap:3px;background:var(--surface2);
+            border:1px solid var(--border);border-radius:5px;padding:3px 8px 3px 10px;font-size:12px;font-weight:700">
+          ${b}
+          <button data-type="${type}" data-book="${bSafe}"
+            onclick="removeBookFromLib(this.dataset.type,this.dataset.book)"
+            style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;
+              line-height:1;padding:0 2px" title="삭제">×</button>
+        </span>`;
+      }).join('');
+
+  // 칩 영역만 교체 (첫 번째 자식 div)
+  const chipContainer = body.querySelector('div[style*="min-height"]');
+  if (chipContainer) chipContainer.innerHTML = chipsHTML;
+
+  // 입력 필드 초기화
+  const input = document.getElementById('lib-new-' + type);
+  if (input) input.value = '';
 }
 
 // 단일 휴무일 추가
@@ -5149,7 +5077,7 @@ function openEditAssignModal(assignId) {
           <input type="checkbox" class="bulk-edit-chk" data-assign-id="${ba.id}" ${done ? '' : 'checked'}>
           <span style="font-weight:700;color:var(--text);min-width:60px">${stu.name}</span>
           <span style="color:var(--text3)">${condText}</span>
-          ${done ? '<span style="font-size:10px;background:var(--surface2);color:var(--text3);padding:2px 6px;border-radius:20px;border:1px solid var(--border2);flex-shrink:0">완료</span>' : ''}
+          ${done ? '<span style="font-size:10px;background:var(--border);color:var(--text3);padding:1px 6px;border-radius:4px;flex-shrink:0">완료</span>' : ''}
         </label>`;
     }).join('');
     // 전체선택 초기 상태 동기화
@@ -5275,7 +5203,7 @@ function saveEditAssign(bulkConfirmed) {
     const warn = document.getElementById('assign-overlap-warn');
     const msg  = document.getElementById('assign-overlap-msg');
     if (warn && msg) {
-      warn.style.cssText = 'display:block;margin-top:10px;padding:12px 14px;background:#FEF4DC;border:1px solid #FAC775;border-radius:8px;font-size:12px;color:#7A4A00;line-height:1.8';
+      warn.style.cssText = 'display:block;margin-top:10px;padding:12px 14px;background:#FEF5E7;border:1px solid #FAC775;border-radius:8px;font-size:12px;color:#7A4A00;line-height:1.8';
       msg.innerHTML =
         `⚠️ <strong>다음 ${nameList.length}명의 과제도 함께 수정됩니다</strong><br>` +
         `<span style="color:#5A4000">${nameList.join(', ')}</span><br>` +
