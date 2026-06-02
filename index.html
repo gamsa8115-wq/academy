@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="THEFIRST LMS">
+<meta name="theme-color" content="#1C2E26">
+<link rel="manifest" href="manifest.json">
 <title>THEFIRST LMS</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
@@ -4394,7 +4399,16 @@ function renderSettingsPage() {
           `).join('')}
         </div>
         ${['SV','HV','MAIN','SUB'].map((t, i) => {
-          const books = (DB.bookLibrary && Array.isArray(DB.bookLibrary[t])) ? [...DB.bookLibrary[t]].sort((a,b)=>a.localeCompare(b,'ko-KR',{numeric:true})) : [];
+          const books = (DB.bookLibrary && Array.isArray(DB.bookLibrary[t])) ? [...DB.bookLibrary[t]].sort((a,b)=>((a, b) => {
+    const parse = s => {
+      const m = s.match(/^(\d+)[-\s](.+)$/);
+      return m ? [m[2], parseInt(m[1])] : [s, 0];
+    };
+    const [an, ai] = parse(a);
+    const [bn, bi] = parse(b);
+    const nc = an.localeCompare(bn, 'ko-KR');
+    return nc !== 0 ? nc : ai - bi;
+  })(a, b)) : [];
           return `
           <div id="lib-body-${t}" style="${t===currentLibTab?'':'display:none'}">
             <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;min-height:32px">
@@ -4454,7 +4468,16 @@ function addBookToLib(type) {
   if (DB.bookLibrary[type].includes(book)) { toast('이미 등록된 교재입니다.', 'warning'); return; }
   DB.bookLibrary[type].push(book);
   // 가나다(한글) + 알파벳 순 자동 정렬
-  DB.bookLibrary[type].sort((a, b) => a.localeCompare(b, 'ko-KR', {numeric: true}));
+  DB.bookLibrary[type].sort((a, b) => ((a, b) => {
+    const parse = s => {
+      const m = s.match(/^(\d+)[-\s](.+)$/);
+      return m ? [m[2], parseInt(m[1])] : [s, 0];
+    };
+    const [an, ai] = parse(a);
+    const [bn, bi] = parse(b);
+    const nc = an.localeCompare(bn, 'ko-KR');
+    return nc !== 0 ? nc : ai - bi;
+  })(a, b));
   currentLibTab = type; // 추가한 탭으로 유지
   saveBookLibraryFb(type);
   toast(`"${book}" 추가되었습니다.`, 'success');
@@ -5400,6 +5423,13 @@ if (_assignStartEl) _assignStartEl.value = formatDate(new Date());
 <!-- Firebase SDK 로드 완료 후 앱 시작 -->
 <script>
   bootApp();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
