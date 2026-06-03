@@ -4452,7 +4452,7 @@ function renderSettingsPage() {
                     const origIdx = DB.bookLibrary[t] ? DB.bookLibrary[t].indexOf(b) : bIdx;
                     // 학생 수 계산
                     const stuCount = DB.assignments.filter(a =>
-                      a.type === t && (a.book === b || a.book.startsWith(b+' ') || a.book.startsWith(b+'-') || a.book.startsWith(b+'(') || a.book.startsWith(b+'차'))
+                      a.type === t && (a.book === b || a.book.includes(b))
                     ).length;
                     return `<span class="lib-drag-item"
                         draggable="true"
@@ -4466,6 +4466,7 @@ function renderSettingsPage() {
                       <span style="font-size:9px;color:var(--text3);margin-right:3px;cursor:grab">⠿</span>
                       ${b}
                       <span class="book-stu-badge${stuCount===0?' zero':''}"
+                        draggable="false"
                         onclick="event.stopPropagation();openBookStuPopup('${b}','${t}')"
                         title="사용 중인 학생 보기">${stuCount}명</span>
                       <button data-type="${tSafe}" data-book="${bSafe}"
