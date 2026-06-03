@@ -584,6 +584,16 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 </main>
 
 <!-- 토스트 -->
+<div id="book-stu-popup-wrap" class="book-stu-popup-wrap" style="display:none" onclick="if(event.target===this)closeBookStuPopup()">
+  <div class="book-stu-popup">
+    <div class="bsp-hdr">
+      <span class="bsp-title" id="bsp-title"></span>
+      <span class="bsp-cnt"   id="bsp-cnt"></span>
+      <button class="bsp-close" onclick="closeBookStuPopup()">×</button>
+    </div>
+    <div class="bsp-body" id="bsp-body"></div>
+  </div>
+</div>
 <div class="toast-wrap" id="toast-wrap"></div>
 
 <!-- ══════════════════════════════════════════════
